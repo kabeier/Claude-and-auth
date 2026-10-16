@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>JWT X-ray</title>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  :root { --paper:#f4f6f9; --grid:#dce3ee; --ink:#1b2230; --muted:#5b6577; --blue:#2552c9; --green:#13795b; --red:#c8372d; --violet:#6b3fb8; --sticky:#ffe76a;
+    --h:#c8372d; --p:#6b3fb8; --s:#13795b; }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: 'Atkinson Hyperlegible', system-ui, sans-serif; color: var(--ink); font-size: 18px; line-height: 1.5;
+    background: var(--paper) linear-gradient(var(--grid) 1px, transparent 1px) -1px -1px / 40px 40px,
+                linear-gradient(90deg, var(--grid) 1px, transparent 1px) -1px -1px / 40px 40px; }
+  main { max-width: 1180px; margin: 0 auto; padding: 40px 28px 64px; }
+  h1 { font: 800 clamp(40px, 6vw, 64px)/1 'Bricolage Grotesque', sans-serif; letter-spacing: -0.03em; margin: 0 0 10px; }
+  .lede { color: var(--muted); max-width: 70ch; margin: 0 0 24px; }
+  label { font-weight: 700; display: block; margin-bottom: 6px; }
+  textarea { width: 100%; min-height: 120px; font: 500 15px/1.5 'JetBrains Mono', monospace; padding: 14px; border: 2px solid var(--ink); border-radius: 4px; resize: vertical; word-break: break-all; }
+  textarea:focus-visible, button:focus-visible { outline: 3px solid var(--blue); outline-offset: 2px; }
+  .row { display: flex; gap: 10px; margin: 10px 0 28px; flex-wrap: wrap; }
+  button { font: 700 16px 'Atkinson Hyperlegible'; padding: 10px 18px; border-radius: 4px; border: 2px solid var(--ink); background: #fff; cursor: pointer; }
+  button.primary { background: var(--sticky); }
+  .token { background: #fff; border: 2px solid var(--ink); border-radius: 4px; padding: 16px; font: 500 15px/1.6 'JetBrains Mono', monospace; word-break: break-all; }
+  .token .h { color: var(--h); } .token .p { color: var(--p); } .token .s { color: var(--s); } .token .dot { color: var(--ink); font-weight: 700; }
+  .parts { display: grid; grid-template-columns: 1fr 1.6fr 1fr; gap: 18px; margin-top: 18px; }
+  @media (max-width: 900px) { .parts { grid-template-columns: 1fr; } }
+  .part { background: #fff; border: 2px solid var(--ink); border-top-width: 10px; border-radius: 4px; padding: 16px 18px; }
+  .part.h { border-top-color: var(--h); } .part.p { border-top-color: var(--p); } .part.s { border-top-color: var(--s); }
+  .part h2 { font: 800 24px 'Bricolage Grotesque', sans-serif; margin: 0 0 4px; }
+  .part .what { color: var(--muted); margin: 0 0 12px; font-size: 16px; }
+  pre { margin: 0; font: 500 14px/1.5 'JetBrains Mono', monospace; white-space: pre-wrap; word-break: break-all; background: #f1f3f7; padding: 12px; border-radius: 4px; }
+  dl { margin: 14px 0 0; display: grid; grid-template-columns: auto 1fr; gap: 8px 14px; font-size: 16px; }
+  dt { font: 700 15px 'JetBrains Mono', monospace; color: var(--p); }
+  dd { margin: 0; }
+  .warn { margin-top: 28px; padding: 16px 20px; background: var(--sticky); transform: rotate(-0.4deg); max-width: 80ch; }
+  .err { color: var(--red); font-weight: 700; }
+</style>
+</head>
+<body>
+<main>
+  <h1>JWT X-ray</h1>
+  <p class="lede">Paste an access token (it starts with <code>eyJ</code>) to see its three parts. Everything happens in this page; the token is never sent anywhere.</p>
+
+  <label for="jwt">Access token</label>
+  <textarea id="jwt" spellcheck="false" placeholder="eyJhbGciOi…"></textarea>
+  <div class="row">
+    <button type="button" class="primary" id="sample">Use a sample token</button>
+    <button type="button" id="clear">Clear</button>
+  </div>
+
+  <div id="out" hidden>
+    <div class="token" id="colored"></div>
+    <div class="parts">
+      <section class="part h">
+        <h2>Header</h2>
+        <p class="what">How it was signed</p>
+        <pre id="header"></pre>
+      </section>
+      <section class="part p">
+        <h2>Payload</h2>
+        <p class="what">The claims: who you are. <b>Encoded, not encrypted</b>: anyone can read this.</p>
+        <pre id="payload"></pre>
+        <dl id="claims"></dl>
+      </section>
+      <section class="part s">
+        <h2>Signature</h2>
+        <p class="what">Made by Supabase with a key only it has. Change one letter of the header or payload and this no longer matches: Supabase answers <b>401</b>.</p>
+        <pre id="sig"></pre>
+      </section>
+    </div>
+    <p class="warn"><b>Never put secrets in a payload</b> (passwords, card numbers): it's base64, which anyone can decode, as this page just did.</p>
+  </div>
+  <p class="err" id="error" hidden></p>
+</main>
+<script>
+  const $ = (s) => document.querySelector(s)
+  const esc = (s) => s.replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' })[c])
+  const b64 = (s) => { s = s.replace(/-/g, '+').replace(/_/g, '/'); s += '='.repeat((4 - s.length % 4) % 4)
+    return decodeURIComponent(atob(s).split('').map((c) => '%' + c.charCodeAt(0).toString(16).padStart(2, '0')).join('')) }
+  const enc = (o) => btoa(JSON.stringify(o)).replace(/=+$/, '').replace(/\+/g, '-').replace(/\//g, '_')
+
+  function when(sec) {
+    const d = new Date(sec * 1000)
+    const mins = Math.round((d - Date.now()) / 60000)
+    const rel = mins > 0 ? `in ${mins} min` : `${-mins} min ago`
+    return `${d.toLocaleString()} (${rel})`
+  }
+  const EXPLAIN = {
+    sub: (v) => `the user's id. In Postgres this is <b>auth.uid()</b>, the value RLS compares with <code>user_id</code>`,
+    role: (v) => v === 'authenticated' ? 'a logged-in user: policies <code>to authenticated</code> apply' : `the role Postgres uses: <code>${esc(String(v))}</code>`,
+    email: () => 'their email',
+    exp: (v) => `expires ${when(v)}. After that: 401, and supabase-js swaps the refresh token for a new one`,
+    iat: (v) => `issued ${when(v)}`,
+    aud: () => 'who the token is for',
+    iss: () => 'who made it (Supabase Auth)',
+    session_id: () => 'the login session. Log out ends it, so its refresh token stops working',
+  }
+
+  function show() {
+    const raw = $('#jwt').value.trim().replace(/^Bearer\s+/i, '')
+    $('#error').hidden = true
+    if (!raw) { $('#out').hidden = true; return }
+    const parts = raw.split('.')
+    try {
+      if (parts.length !== 3) throw new Error('A JWT has exactly three parts separated by dots. This has ' + parts.length + '.')
+      const header = JSON.parse(b64(parts[0])), payload = JSON.parse(b64(parts[1]))
+      $('#colored').innerHTML = `<span class="h">${esc(parts[0])}</span><span class="dot">.</span><span class="p">${esc(parts[1])}</span><span class="dot">.</span><span class="s">${esc(parts[2])}</span>`
+      $('#header').textContent = JSON.stringify(header, null, 2)
+      $('#payload').textContent = JSON.stringify(payload, null, 2)
+      $('#sig').textContent = parts[2]
+      $('#claims').innerHTML = Object.keys(EXPLAIN).filter((k) => k in payload)
+        .map((k) => `<dt>${k}</dt><dd>${EXPLAIN[k](payload[k])}</dd>`).join('')
+      $('#out').hidden = false
+    } catch (e) {
+      $('#out').hidden = true
+      $('#error').textContent = e.message.startsWith('A JWT') ? e.message : 'That doesn’t decode as a JWT. Copy the whole access_token value, without the quotes.'
+      $('#error').hidden = false
+    }
+  }
+
+  // A made-up token shaped like Supabase's (the signature is fake).
+  $('#sample').onclick = () => {
+    const now = Math.floor(Date.now() / 1000)
+    const header = { alg: 'ES256', kid: 'sample-key', typ: 'JWT' }
+    const payload = { iss: 'https://<project-id>.supabase.co/auth/v1', sub: '7f3c2a10-4b9e-4c1d-9a55-2e8f6b0d1c34', aud: 'authenticated',
+      exp: now + 3600, iat: now, email: 'maria@ticked.app', role: 'authenticated', session_id: 'b2a9e4f0-61c3-4d7a-8f20-5c9d1e3a7b66' }
+    $('#jwt').value = enc(header) + '.' + enc(payload) + '.SAMPLE-not-a-real-signature-Supabase-would-reject-this'
+    show()
+  }
+  $('#clear').onclick = () => { $('#jwt').value = ''; show(); $('#jwt').focus() }
+  $('#jwt').addEventListener('input', show)
+</script>
+</body>
+</html>

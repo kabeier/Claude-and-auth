@@ -1,0 +1,230 @@
+{
+  "info": {
+    "name": "Ticked Auth",
+    "description": "Authentication lecture 1: get a real access token from Supabase Auth and use it. Set base_url (https://<project-id>.supabase.co, no /rest/v1) and publishable_key in the collection Variables. Turn OFF Authentication \u2192 Sign In / Providers \u2192 Email \u2192 Confirm email first.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1 Sign up (Supabase Auth)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "apikey",
+            "value": "{{publishable_key}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/auth/v1/signup",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "auth",
+            "v1",
+            "signup"
+          ]
+        },
+        "description": "Creates a row in auth.users. Response: access_token, refresh_token, expires_in, user. The script saves access_token.",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"test@ticked.app\",\n  \"password\": \"password123\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "// Save the access token for the next requests (Variables tab: access_token)",
+              "const body = pm.response.json();",
+              "if (body.access_token) { pm.collectionVariables.set('access_token', body.access_token); }"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "2 Log in (Supabase Auth)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "apikey",
+            "value": "{{publishable_key}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/auth/v1/token?grant_type=password",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "auth",
+            "v1",
+            "token"
+          ],
+          "query": [
+            {
+              "key": "grant_type",
+              "value": "password"
+            }
+          ]
+        },
+        "description": "Same tokens again. Wrong password \u2192 400 invalid_credentials.",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"test@ticked.app\",\n  \"password\": \"password123\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "// Save the access token for the next requests (Variables tab: access_token)",
+              "const body = pm.response.json();",
+              "if (body.access_token) { pm.collectionVariables.set('access_token', body.access_token); }"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "3 GET tasks as anon (Friday)",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "apikey",
+            "value": "{{publishable_key}}"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{publishable_key}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/rest/v1/tasks",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "rest",
+            "v1",
+            "tasks"
+          ]
+        },
+        "description": "Bearer = the publishable key \u2192 role anon. The dev rules let anon in: every task, from everyone."
+      }
+    },
+    {
+      "name": "4 GET tasks as the logged-in user",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "apikey",
+            "value": "{{publishable_key}}"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{access_token}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/rest/v1/tasks",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "rest",
+            "v1",
+            "tasks"
+          ]
+        },
+        "description": "Bearer = the access token \u2192 role authenticated. The dev rules are 'to anon', so: 200 []."
+      }
+    },
+    {
+      "name": "5 POST a task as the logged-in user",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "apikey",
+            "value": "{{publishable_key}}"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{access_token}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/rest/v1/tasks",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "rest",
+            "v1",
+            "tasks"
+          ]
+        },
+        "description": "403: Supabase knows who you are, and RLS says no. (Friday's anon POST got 401.)",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"Logged-in task\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "https://<your-project-id>.supabase.co"
+    },
+    {
+      "key": "publishable_key",
+      "value": "sb_publishable_..."
+    },
+    {
+      "key": "access_token",
+      "value": ""
+    }
+  ]
+}

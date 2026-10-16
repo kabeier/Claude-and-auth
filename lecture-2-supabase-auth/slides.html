@@ -1,0 +1,310 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lecture 2 · Supabase Authentication</title>
+<link rel="stylesheet" href="../shared/deck.css">
+</head>
+<body data-minutes="40">
+<div class="stage">
+
+<!-- ============ OPEN (0–2) ============ -->
+<section class="slide title" data-seg="Open" data-at="0">
+  <div class="kicker">Building Applications · Authentication · Part 2 of 2</div>
+  <h1>Supabase authentication</h1>
+  <p class="sub">Back up, rebuild the tables for logins, then two phased prompts. By the end, Ticked knows who you are.</p>
+  <aside class="notes">
+    <p><b>Before class</b> (demo-kit/RUNBOOK.md): Confirm email is OFF (done in Lecture 1). Authentication → Users is empty. <code>~/demos/ticked</code> is committed (<code>git status</code> clean). Ticked's dev server is <b>not</b> running.</p>
+    <p>One terminal in <code>~/demos/ticked</code> (the root, where <code>.mcp.json</code> is). Tabs: Supabase Table Editor, this deck, the "What comes back?" page, <code>demo-kit/prompts.md</code>. Press <b>T</b>.</p>
+  </aside>
+</section>
+
+<section class="slide" data-seg="Open" data-at="1">
+  <h2>Today</h2>
+  <ol class="steps">
+    <li>Back up all five tables, then drop them</li>
+    <li>Supabase prompt: users ↔ auth, RLS, rebuild. Check each step.</li>
+    <li>Vite + React prompt: Register, Log in, Log out, "who am I?"</li>
+    <li>Two accounts, two browsers: each sees only their own</li>
+  </ol>
+  <aside class="notes">
+    <p>"Lecture 1 was the why. Today is the how. It's the same pattern every time you add something big: understand it, fix the data first, map the workflows, then give Claude a phased prompt with checks built in."</p>
+  </aside>
+</section>
+
+<!-- ============ THE PLAN (2–4) ============ -->
+<section class="slide diagram" data-seg="The plan" data-at="2">
+  <img src="../diagrams/AU2-01-auth-model.png" alt="Register or log in writes to auth.users, which Supabase manages. A trigger copies each new user into public.users. projects and tasks point to public.users through user_id. tags are shared and task_tags follow their task. RLS policies on every table use auth.uid() equals user_id, and auth.uid() comes from the access token.">
+  <div class="src">diagrams/AU2-01-auth-model.tldr</div>
+  <aside class="notes">
+    <ul>
+      <li><code>auth.users</code>: Supabase's table. Emails, password hashes. Our code never writes to it.</li>
+      <li><code>public.users</code>: OUR table, a mirror. Same <code>id</code>, plus what the app shows (the name).</li>
+      <li><b>Trigger:</b> code in the database that runs by itself when something happens. "When a row is added to auth.users, add one to public.users."</li>
+      <li><b>RLS:</b> <code>auth.uid() = user_id</code>. Lecture 1: <code>auth.uid()</code> is the <code>sub</code> from the token.</li>
+    </ul>
+    <p>"Everything else depends on this being right, so we do the database first."</p>
+  </aside>
+</section>
+
+<!-- ============ BACK UP + DROP (4–8) ============ -->
+<section class="slide" data-seg="Back up, then drop" data-at="4">
+  <h2>Live: back up, then drop</h2>
+  <div class="cols">
+    <ol class="small">
+      <li>Table Editor → <b>users</b> → <b>Export → Export to CSV</b></li>
+      <li>Same for <b>projects, tags, tasks, task_tags</b></li>
+      <li>Save them in <code>supabase/backups/</code><br><span class="muted">users_backup_2026-10-19.csv …</span></li>
+      <li>Claude drops the tables (SQL first, you approve)</li>
+    </ol>
+    <div class="card blue">
+      <h3>Never drop what you can't restore</h3>
+      <p class="small">The backups are also context: Claude reads them to see what our data looks like.</p>
+    </div>
+  </div>
+  <aside class="notes">
+    <p><b>** LIVE, about 4 minutes. **</b> The curriculum shows users and tasks; Ticked has five tables, so export all five. <code>mkdir -p supabase/backups</code> in the root and move the CSVs from Downloads.</p>
+    <p>Then in Claude (root, <code>/model</code> → Opus), paste the drop prompt from <code>demo-kit/prompts.md</code>. Read the SQL out loud: <code>drop table … cascade</code> and the function. Approve. Table Editor: empty.</p>
+    <p>"The dev rules from Friday go with the tables. Good riddance."</p>
+    <p><b>Backup:</b> <code>demo-kit/drop-tables.sql</code> in the SQL Editor.</p>
+  </aside>
+</section>
+
+<!-- ============ SUPABASE PROMPT (8–17) ============ -->
+<section class="slide" data-seg="The Supabase prompt" data-at="8">
+  <h2>The Supabase prompt</h2>
+  <pre style="font-size:19px">I have confirmed my application works well with this type of database schema and am now ready
+to implement authentication methods to my project.
+
+I would like you to take a look at the following resources:
+
+1. User Journey can be found: <b>front-end/app_outline/user_journey.md</b>
+2. The current supabase schema is as follows: <b>supabase/schema.sql</b>
+3. The current testing data I've populated while ensuring this works is here: <b>supabase/backups/</b>
+
+You should know that I've currently deleted all tables existing in my project and it is now an empty project.
+
+Using these resources as context I would like you to conduct the following:
+
+1. alter the user table function as an authentication table
+2. ensure proper RLS policies are set where a user can only view the tasks they own.
+3. recreate my database tables on supabase
+
+After conducting each action, pause and ask for confirmation that your actions worked correctly
+before proceeding to the next step.
+
+Do you have any questions before executing this task?</pre>
+  <aside class="notes">
+    <p><b>** LIVE. **</b> Same Claude session, in the root ("the directory running your supabase project": <code>.mcp.json</code> moved there on Friday). Paste from <code>demo-kit/prompts.md</code>; the bold parts are our paths.</p>
+    <p>Point at two lines: <b>"pause and ask for confirmation"</b> (we check every step) and <b>"Do you have any questions"</b> (it plans before it acts).</p>
+    <p><b>Its questions:</b> answer with the "Likely questions" block in <code>prompts.md</code>. The big ones:</p>
+    <ul>
+      <li>name comes from the sign-up form;</li>
+      <li><code>user_id</code> defaults to <code>auth.uid()</code>, not null;</li>
+      <li>tags shared;</li>
+      <li><b>don't re-import the backups</b> (the Demo User has no login);</li>
+      <li>update <code>supabase/schema.sql</code> when done.</li>
+    </ul>
+  </aside>
+</section>
+
+<section class="slide" data-seg="The Supabase prompt" data-at="11">
+  <h2>What Claude is writing</h2>
+  <div class="cols">
+    <pre style="font-size:18px"><span class="c">-- the trigger: auth.users → public.users</span>
+create trigger on_auth_user_created
+  after insert on auth.users
+  for each row
+  execute function public.handle_new_user();
+
+<span class="c">-- every task gets its owner from the token</span>
+user_id uuid not null default auth.uid()</pre>
+    <pre style="font-size:18px"><span class="c">-- the curriculum's policy</span>
+create policy "Users can view own tasks"
+  on tasks
+  for select
+  to authenticated
+  using (auth.uid() = user_id);
+
+<span class="c">-- + insert, update, delete:
+-- the same check</span></pre>
+  </div>
+  <p class="bottomline">The app never sends a user id. The token does.</p>
+  <aside class="notes">
+    <p>While Claude works. Compare these with what Claude actually shows you: names will differ, the ideas shouldn't.</p>
+    <ul>
+      <li><b>Trigger:</b> <code>handle_new_user</code> is <code>security definer</code>: it runs as the database owner, because the new user can't insert into <code>public.users</code> yet.</li>
+      <li><b><code>default auth.uid()</code>:</b> the database fills in the owner from the token. On Friday the app had to send the Demo User's id; now it can't lie about who it is.</li>
+      <li><b>Policy:</b> "for each row: does the id in your token match this row's user_id?" <code>to authenticated</code> = anon gets nothing.</li>
+    </ul>
+  </aside>
+</section>
+
+<section class="slide" data-seg="The Supabase prompt" data-at="13">
+  <h2>When Claude pauses: check, then confirm</h2>
+  <table class="dbt">
+    <tr><th>Claude's step</th><th>Where to look</th><th>You should see</th></tr>
+    <tr><td>users → auth table</td><td>Database → Triggers / Functions</td><td><code>on_auth_user_created</code>, <code>handle_new_user</code></td></tr>
+    <tr><td>RLS policies</td><td>Authentication → Policies</td><td><code>auth.uid() = user_id</code>, no "dev:" rules</td></tr>
+    <tr><td>recreate tables</td><td>Table Editor</td><td>5 empty tables, RLS on</td></tr>
+  </table>
+  <p class="bottomline">Then reply: "Confirmed, continue." You are the test for this prompt.</p>
+  <aside class="notes">
+    <p><b>** LIVE. **</b> Claude may reorder the steps (tables first is common). Check each one when it pauses. Approve Supabase MCP calls one by one; read the SQL.</p>
+    <p><b>Time check:</b> if the database isn't done by ~min 17, stop Claude (Esc), run <code>drop-tables.sql</code> then <code>backup-ticked-auth/supabase/schema.sql</code> in the SQL Editor, and copy that file over <code>supabase/schema.sql</code>. Say: "This is what Claude was building."</p>
+  </aside>
+</section>
+
+<!-- ============ REACT PROMPT (17–21) ============ -->
+<section class="slide diagram" data-seg="The front end" data-at="17">
+  <img src="../diagrams/AU2-02-workflows.png" alt="Four front-end workflows, each one phase: 1 Register with name, email and password through signUp, then the trigger makes the public.users row. 2 Log in with signInWithPassword, only my tasks. 3 Log out with signOut, tokens removed. 4 Who am I: the header shows my name, and a refresh finds the saved tokens with getSession. Every page except Log in and Register is protected.">
+  <div class="src">diagrams/AU2-02-workflows.tldr</div>
+  <aside class="notes">
+    <p>The curriculum's checklist. Each one becomes a phase, and Claude proves each phase with Playwright before starting the next.</p>
+    <p>Number 4 is the subtle one: after a refresh, React's state is gone. supabase-js saved the tokens in localStorage, and <code>getSession()</code> reads them back. That's "leveraging the current credentials".</p>
+  </aside>
+</section>
+
+<section class="slide" data-seg="The front end" data-at="19">
+  <h2>The Vite + React prompt</h2>
+  <pre style="font-size:19px">Utilizing the following resources:
+
+- Supabase db schema: <b>supabase/schema.sql</b>
+- user journey: <b>front-end/app_outline/user_journey.md</b>
+- Project API url: <b>https://&lt;id&gt;.supabase.co</b>
+- Project API Key: <b>sb_publishable_…</b>
+
+I would like you to update the functionality for the User Authentication process. Consider the
+following actions a user can take:
+
+- Register · Log In · Log out · User Confirmation (… refreshes the browser …)
+
+Each of these actions should be an independent phase. Utilize playwright to ensure completion of
+each phase prior to moving on to the next one.
+
+Do you have any questions before completing these actions?</pre>
+  <p class="bottomline">Full text in <code>demo-kit/prompts.md</code>. The publishable key is fine to paste; the secret key never is.</p>
+  <aside class="notes">
+    <p><b>** LIVE. **</b> Same session. Paste the full prompt from <code>prompts.md</code> (the slide shortens the four actions).</p>
+    <p><b>Its questions:</b> use the "Likely questions" block:</p>
+    <ul>
+      <li>/login and /register;</li>
+      <li>protect every other page;</li>
+      <li>name + Log out in the header;</li>
+      <li>all Supabase calls stay in <code>db.js</code>;</li>
+      <li>remove the Demo User and <code>VITE_DEMO_USER_ID</code>;</li>
+      <li>test accounts maria@ / sam@ticked.app.</li>
+    </ul>
+    <p>Check the plan: mostly new files (pages, an auth context) plus <code>db.js</code>; nothing else in the UI should change. Approve; "Yes, allow all edits during this session". Start the activity.</p>
+  </aside>
+</section>
+
+<!-- ============ ACTIVITY (21–27) ============ -->
+<section class="slide activity" data-seg="Activity: What comes back?" data-at="21">
+  <h2>Activity: What comes back?</h2>
+  <div class="countdown" data-sec="360"></div>
+  <ol class="steps">
+    <li>Maria owns 2 tasks, Sam owns 1. The new RLS rules are on.</li>
+    <li>A request appears: who sent it, and what?</li>
+    <li>In chat on "go": <b>Rows</b>, <b>[ ]</b>, <b>201</b>, <b>204</b>, <b>401</b> or <b>403</b></li>
+  </ol>
+  <p class="muted small" style="margin-top:24px">Page: activity-what-comes-back/</p>
+  <aside class="notes">
+    <p>While Claude builds the phases. About 30 seconds a card; the first 6 are the core set. Glance at the terminal between cards and approve what Claude asks.</p>
+    <p>The surprise card is #5: Sam deletes Maria's task → 204, but nothing is deleted. "Always check the Table Editor, not just the status."</p>
+    <p>When Claude starts a Playwright check, stop and watch it: next slide.</p>
+  </aside>
+</section>
+
+<!-- ============ VERIFY + PAYOFF (27–35) ============ -->
+<section class="slide" data-seg="Verify" data-at="27">
+  <h2>Watch Claude check each phase</h2>
+  <div class="cols">
+    <div class="card blue">
+      <h3>Playwright, per phase</h3>
+      <ul class="small">
+        <li>Register → lands on an empty Tasks page</li>
+        <li>Log in → only that account's tasks</li>
+        <li>Log out → back to Log in</li>
+        <li>Refresh → still logged in</li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h3>You check</h3>
+      <ul class="small">
+        <li>Table Editor → <b>users</b>: a row per account (the trigger)</li>
+        <li><b>tasks.user_id</b> = the right account</li>
+        <li>The summary's <b>assumptions</b></li>
+      </ul>
+    </div>
+  </div>
+  <aside class="notes">
+    <p><b>** LIVE. **</b> Approve the Playwright and Supabase calls. Point at the browser window Playwright drives.</p>
+    <p>After phase 1, open Table Editor → users: "Nobody inserted that row. The trigger did."</p>
+    <p><b>Time check:</b> if Claude isn't on the Log out phase by ~min 31, stop it and use the backup (RUNBOOK → "Time check, Lecture 2").</p>
+  </aside>
+</section>
+
+<section class="slide" data-seg="Verify" data-at="30">
+  <h2>Live: two accounts, two browsers</h2>
+  <ol class="steps">
+    <li>Normal window: register <b>Maria</b>, add "Leg day"</li>
+    <li>Private window: register <b>Sam</b>. No "Leg day".</li>
+    <li>Refresh Maria: still logged in</li>
+    <li>DevTools → Network: <code>Authorization: Bearer eyJ…</code></li>
+    <li>DevTools → Application → Local Storage: the tokens. Log out: gone.</li>
+  </ol>
+  <aside class="notes">
+    <p><b>** LIVE, the payoff (about 5 minutes). **</b> <code>cd front-end && npm run dev</code>.</p>
+    <ul>
+      <li>Two windows side by side. Sam sees nothing of Maria's. "Same app, same database, same publishable key. Different token."</li>
+      <li>Network → click <code>tasks?select=…</code> → Headers: <code>apikey</code> = publishable key (which project), <code>Authorization</code> = <code>eyJ…</code> (which user). Copy the token into the JWT X-ray: <code>sub</code> = Maria's id; compare with her row in Table Editor → users.</li>
+      <li>Application → Local Storage → <code>sb-…-auth-token</code>: access + refresh token. That's how the refresh worked.</li>
+      <li>Log out: the key disappears and the page goes to Log in.</li>
+    </ul>
+  </aside>
+</section>
+
+<!-- ============ WRAP (35–40) ============ -->
+<section class="slide" data-seg="Wrap up" data-at="35">
+  <h2>Ticked is no longer an open house</h2>
+  <ul class="small">
+    <li><code>public.users</code> mirrors <code>auth.users</code> through a trigger</li>
+    <li>RLS: <code>auth.uid() = user_id</code>, enforced by the database, not the app</li>
+    <li>Register, Log in, Log out, and still logged in after a refresh</li>
+    <li>Commit: <code>git status</code> (no <code>.env</code>!), then commit and push</li>
+  </ul>
+  <p class="bottomline">The pattern: understand it → fix the data → map the workflows → a phased prompt with checks.</p>
+  <aside class="notes">
+    <p><b>** LIVE, 1 minute: **</b> <code>git status</code>: new pages, <code>db.js</code>, <code>schema.sql</code>, <code>supabase/backups/</code>. "Backups: commit them only if they hold test data. Ours do." Commit "Add Supabase Auth: register, log in, log out".</p>
+  </aside>
+</section>
+
+<section class="slide" data-seg="Wrap up" data-at="37">
+  <h2>Homework, Part II</h2>
+  <div class="cols">
+    <ol style="list-style:none;padding-left:0" class="small">
+      <li><b>Priority 1, your own app:</b> add authentication and proper RLS rules</li>
+      <li><b>Priority 2, Netflix Clone IV:</b> add authentication</li>
+      <li><b>Priority 3, FreeCodeCamp:</b> 100 steps of the JavaScript certification</li>
+    </ol>
+    <div class="card green">
+      <h3>The steps</h3>
+      <ul class="small">
+        <li>Back up every table to CSV, then drop</li>
+        <li>Supabase prompt: check each pause</li>
+        <li>Vite + React prompt: four phases</li>
+        <li>Two accounts: each sees only their own? Commit.</li>
+      </ul>
+    </div>
+  </div>
+  <aside class="notes">
+    <p>All steps and both prompts are on the class site. Remind them: turn off Confirm email in THEIR project too, or Playwright gets stuck at "check your email".</p>
+  </aside>
+</section>
+
+</div>
+<script src="../shared/deck.js"></script>
+</body>
+</html>
