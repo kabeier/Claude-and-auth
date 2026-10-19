@@ -95,7 +95,7 @@ The question box doesn't take notes. Instead, **at the tables pause, read the SQ
 
 | Claude's step | Where to look | You should see |
 |---|---|---|
-| 1 users as an auth table | Database → Functions; Database → Triggers | `handle_new_user`, and `on_auth_user_created` on `auth.users` |
+| 1 users as an auth table | Database → Functions; Database → Triggers (schema dropdown: **auth**) | `handle_new_user`, and `on_auth_user_created` on `auth.users` |
 | 2 recreate the tables | Table Editor (and the SQL Claude ran) | 5 tables, all empty, RLS on (no "unrestricted" badge); `user_id` has `default auth.uid()` |
 | 3 RLS policies | Authentication → Policies | `auth.uid() = user_id` on tasks and projects, `to authenticated`, no "dev:" policies |
 
