@@ -35,7 +35,7 @@ Each deck is a single HTML file. Open it, press **P** for presenter notes in a s
 - `lecture-2-supabase-auth/`: slides, What Comes Back?
 - `demo-kit/`: everything for the live demos. Start with `RUNBOOK.md`
   - `start-ticked/`: the starting point, Ticked as the class left it after the full-stack lectures (no `.mcp.json`, no `.env`)
-  - `backup-ticked-auth/`: the finished version with logins. Also published for the next instructor as [kabeier/ticked-handoff](https://github.com/kabeier/ticked-handoff)
+  - `backup-ticked-auth/`: a reference build with logins (the backup for class). The class's own finished version, built live on Monday, is published for the next instructor as [kabeier/ticked-handoff](https://github.com/kabeier/ticked-handoff)
 - `diagrams/`: tldraw diagrams (`.png` + editable `.tldr`)
 - `shared/`: the slide engine (same as the earlier lecture sites)
 

@@ -14,7 +14,7 @@
 | `dev-policies.sql` | Friday's temporary rules (used by the reset) |
 | `reset-to-start.sql` | After a dry run: Supabase back to Monday's start (Friday's tables, dev rules, Demo User, 3 tasks, no auth users) |
 | `start-ticked/` | **The starting point:** Ticked as the class left it on Friday. No `.mcp.json` and no `.env`; both hold your project's details |
-| `backup-ticked-auth/` | Ticked after Lecture 2. Tested against a local Supabase stack (Auth + PostgREST + Postgres). Its `README.md` is the handoff for the next instructor (also published as github.com/kabeier/ticked-handoff) |
+| `backup-ticked-auth/` | Ticked after Lecture 2. Tested against a local Supabase stack (Auth + PostgREST + Postgres). The next instructor gets the class's own version instead: github.com/kabeier/ticked-handoff |
 
 ## Setup (once, before Lecture 1)
 
