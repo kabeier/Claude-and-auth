@@ -126,7 +126,7 @@ Confirmed, step 3 works. Don't change the front end or CLAUDE.md yet: that's my 
 
 ---
 
-## Lecture 2, slide 10: the Vite + React prompt (the curriculum's, filled in)
+## Lecture 2, slide 11: the Vite + React prompt (the curriculum's, filled in)
 
 Fill in your URL (no `/rest/v1`) and publishable key; both are in `front-end/.env`.
 
@@ -151,7 +151,7 @@ Each of these actions should be an independent phase. Utilize playwright to ensu
 Do you have any questions before completing these actions?
 ```
 
-### What Claude asked in the dry run (slide 11)
+### What Claude asked in the dry run (slide 12)
 
 Pick option 1 (Recommended) every time:
 

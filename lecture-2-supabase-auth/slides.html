@@ -144,7 +144,7 @@ Do you have any questions before executing this task?</pre>
       <li><b>Users table → 1 Profile linked to auth.</b> Its preview: <code>id uuid primary key references auth.users(id) on delete cascade</code>, name, email unique, created_at. Scroll the preview ("3 lines hidden") to check the trigger is mentioned. Not "block deletes" (deleting an account would fail). Not "drop public.users" (the app shows <code>profile.name</code>, and tasks point at it).</li>
       <li><b>Backup data → 1 Start empty.</b> Option 2 "restore after sign-up" works, but it loads test junk ("qa-tag", duplicate tasks) and takes time we don't have. The backups were a safety net and context.</li>
       <li><b>Tags → 1 Shared.</b> Matches Ticked: tags are a shared list everyone picks from. Per-user tags would change the app.</li>
-      <li><b>Order → 1 Users → tables → RLS.</b> Claude is right: you can't write a policy for a table that doesn't exist. Option 2 (all at once) skips the pauses, and the pauses are the point of the prompt. Slide 8's pause checks are in this order.</li>
+      <li><b>Order → 1 Users → tables → RLS.</b> Claude is right: you can't write a policy for a table that doesn't exist. Option 2 (all at once) skips the pauses, and the pauses are the point of the prompt. Slide 9's pause checks are in this order.</li>
     </ul>
     <p>Then <b>Submit</b>. (The question box doesn't take notes. Fix anything missing at the pauses instead.)</p>
     <p><b>At the tables pause (step 2), read the SQL for these.</b> If one is missing, tell Claude before "Confirmed, continue":</p>
@@ -188,6 +188,48 @@ create policy "Users can view own tasks"
   </aside>
 </section>
 
+<section class="slide" data-seg="The Supabase prompt" data-at="12">
+  <h2>Who owns the new row? Not the app</h2>
+  <div class="cols">
+    <div>
+      <h3 style="margin:0 0 10px">Friday: the app said who</h3>
+      <pre style="font-size:17px">POST /rest/v1/projects
+apikey: &lt;publishable key&gt;
+Authorization: Bearer &lt;publishable key&gt;
+
+{ "name": "Gym",
+  <b style="color:#ff8a80">"user_id": "&lt;Demo User's id&gt;"</b> }
+
+<span class="c">// db.js</span>
+insert({ name, description,
+         <b style="color:#ff8a80">user_id: demoUserId()</b> })</pre>
+    </div>
+    <div>
+      <h3 style="margin:0 0 10px">Today: the token says who</h3>
+      <pre style="font-size:17px">POST /rest/v1/projects
+apikey: &lt;publishable key&gt;
+Authorization: Bearer <b style="color:#ffe76a">&lt;Maria's access token&gt;</b>
+
+{ "name": "Gym" }   <span class="c">← no user_id</span>
+
+<span class="c">-- the database fills it in</span>
+user_id = <b style="color:#ffe76a">default auth.uid()</b>
+        = the token's sub = Maria</pre>
+    </div>
+  </div>
+  <p class="bottomline">Anyone can edit a request body. Nobody can fake a signed token.</p>
+  <aside class="notes">
+    <ul>
+      <li><b>Friday:</b> the app put the Demo User's id (from <code>.env</code>) in every new row. It had to: there was no login, so the database had no other way to know.</li>
+      <li><b>The problem:</b> the body is just text the browser sends. Anyone can change it in DevTools or Postman and save rows as someone else.</li>
+      <li><b>Today:</b> the app sends only the data. The owner comes from the <b>token</b>: Supabase checks its signature, <code>auth.uid()</code> = its <code>sub</code>, and <code>default auth.uid()</code> fills in <code>user_id</code>.</li>
+      <li><b>"What if someone sends a user_id anyway?"</b> Their own id: fine, same thing. Someone else's: RLS's check <code>auth.uid() = user_id</code> fails → <b>403</b>. (Activity card 4.)</li>
+      <li>Same for tasks: <code>create_task_with_tags</code> lost its <code>p_user_id</code>.</li>
+      <li>We'll see it for real in the payoff: DevTools → the POST → <b>Payload</b>.</li>
+    </ul>
+  </aside>
+</section>
+
 <section class="slide" data-seg="The Supabase prompt" data-at="13">
   <h2>When Claude pauses: check, then confirm</h2>
   <table class="dbt">
@@ -200,7 +242,7 @@ create policy "Users can view own tasks"
   <aside class="notes">
     <p><b>** LIVE. **</b> In the dry run Claude asked to go users → tables → RLS (policies need the tables), so the table is in that order. If it picks another order, check each step when it pauses. Check each one when it pauses. Approve Supabase MCP calls one by one; read the SQL.</p>
     <p><b>Step 1 in the dry run:</b> Claude tested the trigger itself (a fake sign-up inside a transaction, rolled back) and updated only the users part of <code>schema.sql</code>. The rest of the file still shows the old tables until step 2. Triggers page: switch the schema dropdown from <code>public</code> to <code>auth</code>, because the trigger lives on <code>auth.users</code>. If it says it "backfilled" a profile for <code>test@ticked.app</code>, the Lecture 1 test account wasn't deleted. Harmless, but delete it in Authentication → Users after the lecture.</p>
-    <p><b>When step 3 is done</b> (dry run: 15 policies + <code>create_task_with_tags</code>, tested as two fake users), Claude offers extras. Say: <i>"Confirmed, step 3 works. Don't change the front end or CLAUDE.md yet: that's my next prompt. Leave rls_auto_enable() and the leaked-password setting as they are."</i> Its warnings: the advisor flags <code>rls_auto_enable()</code> (low risk, it's an event-trigger function), leaked password protection (Pro plan, skip), and "the front end won't work until db.js changes" (expected: that's slide 10).</p>
+    <p><b>When step 3 is done</b> (dry run: 15 policies + <code>create_task_with_tags</code>, tested as two fake users), Claude offers extras. Say: <i>"Confirmed, step 3 works. Don't change the front end or CLAUDE.md yet: that's my next prompt. Leave rls_auto_enable() and the leaked-password setting as they are."</i> Its warnings: the advisor flags <code>rls_auto_enable()</code> (low risk, it's an event-trigger function), leaked password protection (Pro plan, skip), and "the front end won't work until db.js changes" (expected: that's slide 11).</p>
     <p><b>Time check:</b> if the database isn't done by ~min 17, stop Claude (Esc), run <code>drop-tables.sql</code> then <code>backup-ticked-auth/supabase/schema.sql</code> in the SQL Editor, and copy that file over <code>supabase/schema.sql</code>. Say: "This is what Claude was building."</p>
   </aside>
 </section>
@@ -326,7 +368,8 @@ Do you have any questions before completing these actions?</pre>
     <li>Normal window: register <b>Maria</b>, add "Leg day"</li>
     <li>Private window: register <b>Sam</b>. No "Leg day".</li>
     <li>Refresh Maria: still logged in</li>
-    <li>DevTools → Network: <code>Authorization: Bearer eyJ…</code></li>
+    <li>Maria adds a project. DevTools → Network → the POST → <b>Payload</b>: no <code>user_id</code></li>
+    <li>DevTools → Network → Headers: <code>Authorization: Bearer eyJ…</code></li>
     <li>DevTools → Application → Local Storage: the tokens. Log out: gone.</li>
   </ol>
   <aside class="notes">
@@ -334,6 +377,7 @@ Do you have any questions before completing these actions?</pre>
     <ul>
       <li>Two windows side by side. Sam sees nothing of Maria's. "Same app, same database, same publishable key. Different token."</li>
       <li>Network → click <code>tasks?select=…</code> → Headers: <code>apikey</code> = publishable key (which project), <code>Authorization</code> = <code>eyJ…</code> (which user). Copy the token into the JWT X-ray: <code>sub</code> = Maria's id; compare with her row in Table Editor → users.</li>
+      <li><b>No user_id:</b> Maria adds a project "Gym". Network → <code>projects</code> (the POST) → <b>Payload</b>: just <code>name</code> and <code>description</code>. Table Editor → projects: <code>user_id</code> = Maria's id. "The app never said who. The token did." (Tasks use the function: its payload has no <code>p_user_id</code>.)</li>
       <li>Application → Local Storage → <code>sb-…-auth-token</code>: access + refresh token. That's how the refresh worked.</li>
       <li>Log out: the key disappears and the page goes to Log in.</li>
     </ul>
