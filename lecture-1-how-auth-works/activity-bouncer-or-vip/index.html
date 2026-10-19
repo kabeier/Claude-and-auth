@@ -71,7 +71,7 @@
       "Bouncer: it's Maria (valid token). VIP list: <code>auth.uid() = user_id</code> is true. <b>204</b>, the row changes."],
     ["Maria, a regular user, opens an admin page that lists every account.", "Authorization",
       "Logged in, but not an admin: <b>403 Forbidden</b>. Knowing who you are is not the same as being allowed."],
-    ["Someone decodes their token, changes <code>sub</code> to Sam's id, and sends it.", "Authentication",
+    ["Someone decodes their token, changes <code>sub</code> to Sam's id, and sends it. <small>(<code>sub</code> = the user's id inside the token)</small>", "Authentication",
       "The signature no longer matches, so Supabase can't trust who this is: <b>401</b>. That's what the signature is for."],
     ["Logged-in Sam asks for <code>GET /rest/v1/tasks</code>. The table has 40 rows; he gets back 3.", "Authorization",
       "Not an error: <b>200</b>. RLS quietly filters every row to the ones where <code>user_id</code> is Sam's. Authorization can say \u201cno\u201d by hiding rows."],

@@ -143,15 +143,22 @@
 <!-- ============ LIVE (26–34) ============ -->
 <section class="slide" data-seg="Live: a real token" data-at="26">
   <h2>Live: log in with Postman, then read the token</h2>
-  <table class="dbt small">
-    <tr><th>Request (collection "Ticked Auth")</th><th>Bearer</th><th>Expect</th></tr>
-    <tr><td><code>POST {{base_url}}/auth/v1/signup</code></td><td>none (apikey only)</td><td>200 + <code>access_token</code>, <code>refresh_token</code></td></tr>
-    <tr><td>paste the access token into the <b>JWT X-ray</b></td><td colspan="2"><code>sub</code>, <code>role: authenticated</code>, <code>exp</code></td></tr>
-    <tr><td><code>GET {{base_url}}/rest/v1/tasks</code></td><td>publishable key (Friday)</td><td>200, every task</td></tr>
-    <tr><td><code>GET {{base_url}}/rest/v1/tasks</code></td><td class="pk">the access token</td><td class="pk">200 <code>[ ]</code> ?!</td></tr>
-    <tr><td><code>POST {{base_url}}/rest/v1/tasks</code></td><td class="pk">the access token</td><td class="pk">403</td></tr>
+  <style>
+    .reqs { font-size: 19px; }
+    .reqs th, .reqs td { padding: 5px 10px; vertical-align: middle; }
+    .reqs code { white-space: nowrap; }
+    .reqs .hd code { display: block; margin: 2px 0; }
+    .reqs code.pk { background: #fff6c4; font-weight: 700; }
+  </style>
+  <table class="dbt small reqs">
+    <tr><th>Request: <code>{{base_url}}</code> +</th><th>Headers</th><th>Body (JSON)</th><th>Expect</th></tr>
+    <tr><td><code>POST /auth/v1/signup</code></td><td class="hd"><code>apikey: &lt;publishable key&gt;</code><code>Content-Type: application/json</code></td><td><code>{"email": "test@ticked.app",</code><br><code>&nbsp;"password": "password123"}</code></td><td>200 + <code>access_token</code>,<br><code>refresh_token</code></td></tr>
+    <tr><td>Paste the token into the <b>JWT X-ray</b></td><td colspan="3"><code>sub</code> (the user's id), <code>role: authenticated</code>, <code>exp</code></td></tr>
+    <tr><td><code>GET /rest/v1/tasks</code></td><td class="hd"><code>apikey: &lt;publishable key&gt;</code><code>Authorization: Bearer &lt;publishable key&gt;</code></td><td>none</td><td>200, every task</td></tr>
+    <tr><td><code>GET /rest/v1/tasks</code></td><td class="hd"><code>apikey: &lt;publishable key&gt;</code><code class="pk">Authorization: Bearer &lt;access_token&gt;</code></td><td>none</td><td class="pk">200 <code>[ ]</code> ?!</td></tr>
+    <tr><td><code>POST /rest/v1/tasks</code></td><td class="hd"><code>apikey: &lt;publishable key&gt;</code><code class="pk">Authorization: Bearer &lt;access_token&gt;</code><code>Content-Type: application/json</code></td><td><code>{"title": "Logged-in task"}</code></td><td class="pk">403</td></tr>
   </table>
-  <p class="bottomline">Logged in, and you see <b>less</b> than a stranger. Why?</p>
+  <p class="bottomline">Same <code>apikey</code> every time; only <b>Authorization</b> changes. Logged in, you see <b>less</b> than a stranger. Why?</p>
   <aside class="notes">
     <p><b>** LIVE, about 7 minutes. **</b> Steps in order (also in the RUNBOOK):</p>
     <ol>
