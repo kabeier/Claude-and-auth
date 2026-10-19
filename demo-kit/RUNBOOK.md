@@ -63,13 +63,14 @@ rm -rf ~/demos/ticked-auth-snapshot && cp -a ~/demos/ticked ~/demos/ticked-auth-
 | Slide (~min) | Where | Do | Say |
 |---|---|---|---|
 | 4 (~4) | Supabase + terminal | Table Editor → each of the 5 tables → Export → CSV. `mkdir -p supabase/backups`, move the CSVs in. Claude (root, `/model` → Opus): the drop prompt → read SQL → approve | "Never drop what you can't restore." |
-| 5 (~8) | Claude | Paste the Supabase prompt. Answer its questions (prompts.md) | "Pause and ask for confirmation: we're the test." |
-| 6–7 (~11) | Claude + dashboard | At each pause: Triggers/Functions, Policies, Table Editor (prompts.md table). "Confirmed, continue." | — |
-| 9 (~19) | Claude | Paste the Vite + React prompt. Answer its questions. Approve the plan, allow edits for the session | "Four phases, each proven with Playwright." |
-| 10 (~21) | browser | `activity-what-comes-back/` while Claude builds | — |
-| 11 (~27) | Claude | Approve Playwright/MCP calls. After Register: Table Editor → users has a row (the trigger) | "Nobody inserted that row." |
-| 12 (~30) | 2 browsers | `cd front-end && npm run dev`. Maria (normal window) adds "Leg day"; Sam (private window) sees nothing. Refresh Maria. DevTools: Network → Bearer; Application → Local Storage. Log out | "Same key, different token." |
-| 13 (~35) | terminal | `git status` (no .env), commit | — |
+| 5 (~8) | Claude | Paste the Supabase prompt | "Pause and ask for confirmation: we're the test." |
+| 6 (~10) | Claude | Its 4 questions: pick option 1 (Recommended) for each. Press `n` to add the user_id / name / RPC notes (slide notes), then Submit | "Every answer is its Recommended one, and here's why." |
+| 7–8 (~11) | Claude + dashboard | At each pause, in order: Triggers/Functions, Table Editor, Policies (prompts.md table). "Confirmed, continue." | — |
+| 10 (~19) | Claude | Paste the Vite + React prompt. Answer its questions. Approve the plan, allow edits for the session | "Four phases, each proven with Playwright." |
+| 11 (~21) | browser | `activity-what-comes-back/` while Claude builds | — |
+| 12 (~27) | Claude | Approve Playwright/MCP calls. After Register: Table Editor → users has a row (the trigger) | "Nobody inserted that row." |
+| 13 (~30) | 2 browsers | `cd front-end && npm run dev`. Maria (normal window) adds "Leg day"; Sam (private window) sees nothing. Refresh Maria. DevTools: Network → Bearer; Application → Local Storage. Log out | "Same key, different token." |
+| 14 (~35) | terminal | `git status` (no .env), commit | — |
 
 **Time check, Lecture 2:** the two prompts are the risky part.
 

@@ -53,6 +53,26 @@ After conducting each action, pause and ask for confirmation that your actions w
 Do you have any questions before executing this task?
 ```
 
+### What Claude asked in the dry run (slide 6)
+
+A tabbed question box. Pick option 1 (Recommended) every time:
+
+| Claude asks | Pick | Why |
+|---|---|---|
+| How should `public.users` work as the authentication table? | **1 Profile linked to auth** | `id` references `auth.users(id) on delete cascade`; a trigger makes the row |
+| Your backup rows belong to user ids that won't exist. What happens to the CSV data? | **1 Start empty** | The rows belong to the Demo User, who has no login |
+| Tags are shared by every user. What should the RLS rules be? | **1 Shared, any signed-in user** | Tags have no `user_id`; `task_tags` follow their task's owner |
+| RLS policies need the tables to exist. How should I sequence it? | **1 Users → tables → RLS** | Keeps a pause after each step; the tables start locked |
+
+Press `n` to add a note before Submit:
+
+```text
+projects.user_id and tasks.user_id: not null, default auth.uid(), on delete cascade. The app never sends a user id.
+Name comes from the sign-up metadata ("name"), else the part of the email before the @.
+create_task_with_tags: remove p_user_id, security invoker, executable by authenticated only.
+When done, replace supabase/schema.sql with the new schema.
+```
+
 ### Likely questions from Claude, and good answers
 
 ```text
@@ -79,8 +99,8 @@ Do you have any questions before executing this task?
 | Claude's step | Where to look | You should see |
 |---|---|---|
 | 1 users as an auth table | Database → Functions; Database → Triggers | `handle_new_user`, and `on_auth_user_created` on `auth.users` |
-| 2 RLS policies | Authentication → Policies | `auth.uid() = user_id` on tasks and projects, `to authenticated`, no "dev:" policies |
-| 3 recreate the tables | Table Editor | 5 tables, all empty, RLS on (no "unrestricted" badge) |
+| 2 recreate the tables | Table Editor | 5 tables, all empty, RLS on (no "unrestricted" badge) |
+| 3 RLS policies | Authentication → Policies | `auth.uid() = user_id` on tasks and projects, `to authenticated`, no "dev:" policies |
 
 (Claude may do the steps in a different order, for example tables before policies. That's fine: check each one when it pauses.)
 
@@ -88,7 +108,7 @@ Do you have any questions before executing this task?
 
 ---
 
-## Lecture 2, slide 9: the Vite + React prompt (the curriculum's, filled in)
+## Lecture 2, slide 10: the Vite + React prompt (the curriculum's, filled in)
 
 Fill in your URL (no `/rest/v1`) and publishable key; both are in `front-end/.env`.
 

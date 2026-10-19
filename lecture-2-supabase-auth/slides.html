@@ -116,6 +116,35 @@ Do you have any questions before executing this task?</pre>
   </aside>
 </section>
 
+<section class="slide" data-seg="The Supabase prompt" data-at="10">
+  <h2>Claude's questions: what we pick</h2>
+  <table class="dbt small">
+    <tr><th>Claude asks</th><th>Pick</th><th>Why</th></tr>
+    <tr><td>How should <code>public.users</code> work as the auth table?</td><td><b>Profile linked to auth</b></td><td><code>users.id</code> = the <code>auth.users</code> id. A trigger makes the row. Delete the account → the profile goes too</td></tr>
+    <tr><td>What happens to the backup CSV data?</td><td><b>Start empty</b></td><td>Every row belongs to the Demo User, who has no login. The CSVs stay in <code>supabase/backups/</code></td></tr>
+    <tr><td>Tags: what RLS rules?</td><td><b>Shared, any signed-in user</b></td><td>Tags have no <code>user_id</code>. Tag links (<code>task_tags</code>) follow the owner of their task</td></tr>
+    <tr><td>Policies need tables first. What order?</td><td><b>Users → tables → RLS</b></td><td>Still pauses after each step. The tables start locked (RLS on, no policies)</td></tr>
+  </table>
+  <p class="bottomline">Press <b>n</b> to add a note: <code>user_id</code> = <code>not null default auth.uid()</code>. The app never sends it.</p>
+  <aside class="notes">
+    <p><b>Claude asked these four in the dry run</b> (a tabbed question box: Users table, Backup data, Tags, Order, Submit). All four answers are its <b>Recommended</b> option, option 1. The wording changes from run to run; if a question is different, use the "Likely questions" block in <code>prompts.md</code>.</p>
+    <ul>
+      <li><b>Users table → 1 Profile linked to auth.</b> Its preview: <code>id uuid primary key references auth.users(id) on delete cascade</code>, name, email unique, created_at. Scroll the preview ("3 lines hidden") to check the trigger is mentioned. Not "block deletes" (deleting an account would fail). Not "drop public.users" (the app shows <code>profile.name</code>, and tasks point at it).</li>
+      <li><b>Backup data → 1 Start empty.</b> Option 2 "restore after sign-up" works, but it loads test junk ("qa-tag", duplicate tasks) and takes time we don't have. The backups were a safety net and context.</li>
+      <li><b>Tags → 1 Shared.</b> Matches Ticked: tags are a shared list everyone picks from. Per-user tags would change the app.</li>
+      <li><b>Order → 1 Users → tables → RLS.</b> Claude is right: you can't write a policy for a table that doesn't exist. Option 2 (all at once) skips the pauses, and the pauses are the point of the prompt. Slide 8's pause checks are in this order.</li>
+    </ul>
+    <p><b>Add these with <code>n</code></b> (on the Order question is fine), so Claude doesn't have to ask later:</p>
+    <ul>
+      <li><code>projects.user_id</code> and <code>tasks.user_id</code>: not null, default <code>auth.uid()</code>, on delete cascade.</li>
+      <li>Name comes from the sign-up form (<code>name</code> in the metadata), else the part of the email before the @.</li>
+      <li><code>create_task_with_tags</code>: remove <code>p_user_id</code>; security invoker; authenticated only.</li>
+      <li>When done, replace <code>supabase/schema.sql</code> with the new schema.</li>
+    </ul>
+    <p>Then <b>Submit</b>.</p>
+  </aside>
+</section>
+
 <section class="slide" data-seg="The Supabase prompt" data-at="11">
   <h2>What Claude is writing</h2>
   <div class="cols">
@@ -152,13 +181,13 @@ create policy "Users can view own tasks"
   <h2>When Claude pauses: check, then confirm</h2>
   <table class="dbt">
     <tr><th>Claude's step</th><th>Where to look</th><th>You should see</th></tr>
-    <tr><td>users → auth table</td><td>Database → Triggers / Functions</td><td><code>on_auth_user_created</code>, <code>handle_new_user</code></td></tr>
-    <tr><td>RLS policies</td><td>Authentication → Policies</td><td><code>auth.uid() = user_id</code>, no "dev:" rules</td></tr>
-    <tr><td>recreate tables</td><td>Table Editor</td><td>5 empty tables, RLS on</td></tr>
+    <tr><td>1 users → auth table</td><td>Database → Triggers / Functions</td><td><code>on_auth_user_created</code>, <code>handle_new_user</code></td></tr>
+    <tr><td>2 recreate tables</td><td>Table Editor</td><td>5 empty tables, RLS on (locked: no policies yet)</td></tr>
+    <tr><td>3 RLS policies</td><td>Authentication → Policies</td><td><code>to authenticated</code>, <code>auth.uid() = user_id</code>, no "dev:" rules</td></tr>
   </table>
   <p class="bottomline">Then reply: "Confirmed, continue." You are the test for this prompt.</p>
   <aside class="notes">
-    <p><b>** LIVE. **</b> Claude may reorder the steps (tables first is common). Check each one when it pauses. Approve Supabase MCP calls one by one; read the SQL.</p>
+    <p><b>** LIVE. **</b> In the dry run Claude asked to go users → tables → RLS (policies need the tables), so the table is in that order. If it picks another order, check each step when it pauses. Check each one when it pauses. Approve Supabase MCP calls one by one; read the SQL.</p>
     <p><b>Time check:</b> if the database isn't done by ~min 17, stop Claude (Esc), run <code>drop-tables.sql</code> then <code>backup-ticked-auth/supabase/schema.sql</code> in the SQL Editor, and copy that file over <code>supabase/schema.sql</code>. Say: "This is what Claude was building."</p>
   </aside>
 </section>
