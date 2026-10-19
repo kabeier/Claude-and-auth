@@ -102,6 +102,16 @@ The question box doesn't take notes. Instead, **at the tables pause, read the SQ
 - Email confirmation is already turned off for development.
 ```
 
+**When step 3 finishes**, Claude may offer extras. Reply:
+
+```text
+Confirmed, step 3 works. Don't change the front end or CLAUDE.md yet: that's my next prompt. Leave rls_auto_enable() and the leaked-password setting as they are.
+```
+
+- The Security Advisor may flag `rls_auto_enable()` as callable by anon/authenticated. Low risk: it's an event-trigger function, and Postgres won't run those through a normal call. Fine to leave for class.
+- "Leaked password protection is off": a dashboard setting (Pro plan). Skip.
+- "The front end won't work until db.js is updated": correct, and expected. That's the React prompt.
+
 **What to check at each pause** (in the dashboard, before you say "confirmed, continue"):
 
 | Claude's step | Where to look | You should see |
@@ -151,7 +161,7 @@ Do you have any questions before completing these actions?
   button (that's how the user confirms who they are).
 - Keep ALL Supabase calls, auth included, in front-end/src/data/db.js (supabase-js).
   Put the logged-in user in a React context next to TaskContext.
-- Remove the Demo User: delete VITE_DEMO_USER_ID and never send a user_id. The database
+- Remove the Demo User: delete the demo user id variable (VITE_DEMO_USER_ID or VITE_DEFAULT_USER_ID, whichever .env has) and never send a user_id. The database
   fills it in with auth.uid().
 - The URL and key are already in front-end/.env. Keep the variable names that are there.
   Never use the secret key.

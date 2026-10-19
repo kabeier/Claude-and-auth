@@ -200,6 +200,7 @@ create policy "Users can view own tasks"
   <aside class="notes">
     <p><b>** LIVE. **</b> In the dry run Claude asked to go users → tables → RLS (policies need the tables), so the table is in that order. If it picks another order, check each step when it pauses. Check each one when it pauses. Approve Supabase MCP calls one by one; read the SQL.</p>
     <p><b>Step 1 in the dry run:</b> Claude tested the trigger itself (a fake sign-up inside a transaction, rolled back) and updated only the users part of <code>schema.sql</code>. The rest of the file still shows the old tables until step 2. Triggers page: switch the schema dropdown from <code>public</code> to <code>auth</code>, because the trigger lives on <code>auth.users</code>. If it says it "backfilled" a profile for <code>test@ticked.app</code>, the Lecture 1 test account wasn't deleted. Harmless, but delete it in Authentication → Users after the lecture.</p>
+    <p><b>When step 3 is done</b> (dry run: 15 policies + <code>create_task_with_tags</code>, tested as two fake users), Claude offers extras. Say: <i>"Confirmed, step 3 works. Don't change the front end or CLAUDE.md yet: that's my next prompt. Leave rls_auto_enable() and the leaked-password setting as they are."</i> Its warnings: the advisor flags <code>rls_auto_enable()</code> (low risk, it's an event-trigger function), leaked password protection (Pro plan, skip), and "the front end won't work until db.js changes" (expected: that's slide 10).</p>
     <p><b>Time check:</b> if the database isn't done by ~min 17, stop Claude (Esc), run <code>drop-tables.sql</code> then <code>backup-ticked-auth/supabase/schema.sql</code> in the SQL Editor, and copy that file over <code>supabase/schema.sql</code>. Say: "This is what Claude was building."</p>
   </aside>
 </section>
@@ -241,7 +242,7 @@ Do you have any questions before completing these actions?</pre>
       <li>protect every other page;</li>
       <li>name + Log out in the header;</li>
       <li>all Supabase calls stay in <code>db.js</code>;</li>
-      <li>remove the Demo User and <code>VITE_DEMO_USER_ID</code>;</li>
+      <li>remove the Demo User and its id variable (<code>VITE_DEMO_USER_ID</code> or <code>VITE_DEFAULT_USER_ID</code>);</li>
       <li>test accounts maria@ / sam@ticked.app.</li>
     </ul>
     <p>Check the plan: mostly new files (pages, an auth context) plus <code>db.js</code>; nothing else in the UI should change. Approve; "Yes, allow all edits during this session". Start the activity.</p>
