@@ -150,11 +150,13 @@ Using these resources as context I would like you to conduct the following:
 After conducting each action, pause and ask for confirmation that your actions worked correctly before proceeding to the next step.
 
 Also for my project:
-- Do the steps in this order: users, then the tables, then the RLS policies.
+- Order: users, then the tables, then the RLS policies, then any functions.
+- users.id is the auth.users id. A trigger on auth.users creates the profile at sign-up (that trigger is fine to add).
 - Every user_id column: not null, default auth.uid(), on delete cascade. My app will never send a user id.
+- RLS: own rows only, for every action. Rows can only point at my own rows (for example a task in my own project). No anon access.
 - Start with empty tables. Don't re-import the backups: their rows belong to a user who has no login.
-- Check my front-end code for database functions it calls (supabase.rpc). Recreate each one after the policies, so the owner comes from auth.uid(): security invoker, executable by authenticated only.
-- Don't drop or change functions I didn't make, like rls_auto_enable().
+- Check my front-end code for database functions it calls (supabase.rpc). Recreate each one so the owner comes from auth.uid(): security invoker, executable by authenticated only.
+- Don't drop or change functions I didn't make, like rls_auto_enable(). Database only: don't change the front end yet.
 - Before applying each step, show me the complete SQL. When you're done, rewrite supabase/schema.sql to match.
 
 Do you have any questions before executing this task?</code></pre><button type="button" class="copy">Copy</button></div></li>

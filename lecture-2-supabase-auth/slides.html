@@ -81,7 +81,7 @@ my approval.</pre>
 <!-- ============ SUPABASE PROMPT (8–17) ============ -->
 <section class="slide" data-seg="The Supabase prompt" data-at="8">
   <h2>The Supabase prompt</h2>
-  <p class="muted" style="font-size:21px; margin:-12px 0 10px">The curriculum's prompt with our paths, plus <b style="color:#b8860b">our "Also for this project" block</b>. The tables are gone (last slide), so it starts empty.</p>
+  <p class="muted" style="font-size:19px; margin:-14px 0 8px">The curriculum's prompt, our paths in bold, <b style="color:#b8860b">our block in yellow</b>.</p>
   <pre style="font-size:14px; line-height:1.35; padding:16px 24px; white-space:pre-wrap">I have confirmed my application works well with this type of database schema and am now ready
 to implement authentication methods to my project.
 
@@ -103,12 +103,13 @@ After conducting each action, pause and ask for confirmation that your actions w
 before proceeding to the next step.
 
 <b class="ours">Also for this project:
-- Do the steps in this order: users, then the tables, then the RLS policies.
+- Order: users, then the tables, then the RLS policies, then the function.
+- users.id is the auth.users id. A trigger on auth.users creates the profile at sign-up (that trigger is fine to add). Keep name and email.
 - projects.user_id and tasks.user_id: not null, default auth.uid(), on delete cascade. The app will never send a user id.
+- RLS: own rows only, for every action. A task can only use my own project, and task_tags only my own tasks. No anon access. Tags: any signed-in user can read and add them, but not edit or delete.
 - Start with empty tables. Don't re-import the backups: their rows belong to a Demo User who has no login.
-- Tags stay shared: any signed-in user can read and add them.
-- My front end calls create_task_with_tags. Recreate it after the policies: no p_user_id, security invoker, executable by authenticated only.
-- Keep rls_auto_enable(). Only touch my app's tables and functions.
+- Recreate create_task_with_tags (my front end calls it): no p_user_id, security invoker, executable by authenticated only.
+- Keep rls_auto_enable(). Database only: don't change the front end, that's my next prompt.
 - Before applying each step, show me the complete SQL. When you're done, rewrite supabase/schema.sql to match, header comments included.</b>
 
 Do you have any questions before executing this task?</pre>
@@ -139,6 +140,7 @@ Do you have any questions before executing this task?</pre>
   <p class="bottomline">At the tables pause, check one thing: <code>user_id</code> has <code>default auth.uid()</code>. The app never sends it.</p>
   <aside class="notes">
     <p><b>With our "Also for this project" block, Claude should ask fewer of these, maybe none.</b> If it still asks, the answers are the same.</p>
+    <p><b>Dry run 2 (with the block) asked 5 different ones.</b> Answers: (1) trigger on <code>auth.users</code>: <b>yes</b>, that's the exception to "only my tables"; (2) keep email in <code>public.users</code>: <b>keep it</b> (no "change email" feature); (3) ownership checks on project_id and task_tags: <b>yes</b>; (4) tags read and add only: <b>yes</b>; (5) who updates <code>db.js</code>: <b>separate task</b>, the React prompt. The block now answers all five, so expect fewer.</p>
     <p><b>Claude asked these four in the dry run</b> (a tabbed question box: Users table, Backup data, Tags, Order, Submit). All four answers are its <b>Recommended</b> option, option 1. The wording changes from run to run; if a question is different, use the "Likely questions" block in <code>prompts.md</code>.</p>
     <ul>
       <li><b>Users table → 1 Profile linked to auth.</b> Its preview: <code>id uuid primary key references auth.users(id) on delete cascade</code>, name, email unique, created_at. Scroll the preview ("3 lines hidden") to check the trigger is mentioned. Not "block deletes" (deleting an account would fail). Not "drop public.users" (the app shows <code>profile.name</code>, and tasks point at it).</li>

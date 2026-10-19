@@ -53,15 +53,29 @@ Using these resources as context I would like you to conduct the following:
 After conducting each action, pause and ask for confirmation that your actions worked correctly before proceeding to the next step.
 
 Also for this project:
-- Do the steps in this order: users, then the tables, then the RLS policies.
+- Order: users, then the tables, then the RLS policies, then the function.
+- users.id is the auth.users id. A trigger on auth.users creates the profile at sign-up (that trigger is fine to add). Keep name and email.
 - projects.user_id and tasks.user_id: not null, default auth.uid(), on delete cascade. The app will never send a user id.
+- RLS: own rows only, for every action. A task can only use my own project, and task_tags only my own tasks. No anon access. Tags: any signed-in user can read and add them, but not edit or delete.
 - Start with empty tables. Don't re-import the backups: their rows belong to a Demo User who has no login.
-- Tags stay shared: any signed-in user can read and add them.
-- My front end calls create_task_with_tags. Recreate it after the policies: no p_user_id, security invoker, executable by authenticated only.
-- Keep rls_auto_enable(). Only touch my app's tables and functions.
+- Recreate create_task_with_tags (my front end calls it): no p_user_id, security invoker, executable by authenticated only.
+- Keep rls_auto_enable(). Database only: don't change the front end, that's my next prompt.
 - Before applying each step, show me the complete SQL. When you're done, rewrite supabase/schema.sql to match, header comments included.
 
 Do you have any questions before executing this task?
+```
+
+### Dry run 2 (with the block): Claude's 5 questions, and our reply
+
+The block above now answers these, so you may not see them. If you do:
+
+```text
+1. Yes, the trigger on auth.users is fine. That's the one exception to "only my app's tables".
+2. Keep email in public.users. This app doesn't let users change their email.
+3. Yes to all of it.
+4. Yes: read and add only, no edit or delete.
+5. Separate task. Database only for now; I'll do the front end in my next prompt.
+The plan is good. Go ahead with step 1.
 ```
 
 ### What Claude asked in the dry run (slide 6)
