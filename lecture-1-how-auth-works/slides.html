@@ -171,7 +171,56 @@
       <li><b>4 GET tasks as the logged-in user:</b> <code>[]</code>. Pause. Ask chat: "Why?"</li>
       <li><b>5 POST a task as the user:</b> <b>403</b>. "Friday, anon got 401. Now Supabase knows exactly who we are, and still says no. That's authorization."</li>
     </ol>
-    <p>Answer to "why": next slide.</p>
+    <p><b>If sign-up says <code>PGRST125 Invalid path</code>:</b> <code>base_url</code> still ends in <code>/rest/v1</code>, so the request went to <code>…/rest/v1/auth/v1/signup</code>. Hover <code>{{base_url}}</code> to see its value. Check the environment dropdown (top right): an environment variable beats the collection's. It must be just <code>https://&lt;id&gt;.supabase.co</code>.</p>
+
+    <p><b>Two paths, two services</b> (one project URL):</p>
+    <ul>
+      <li><code>/auth/v1/…</code> = Supabase Auth: sign up, log in. Hands out tokens.</li>
+      <li><code>/rest/v1/…</code> = the tables (the API Supabase builds from them).</li>
+      <li><code>v1</code> = version 1. (<code>/api/v1</code> is the habit for backends <i>you</i> write; Supabase doesn't use it.)</li>
+    </ul>
+
+    <p><b>The headers: point at the yellow</b></p>
+    <ul>
+      <li><code>apikey</code> = which <b>project</b>. Never changes.</li>
+      <li><code>Authorization: Bearer</code> = which <b>user</b>. Publishable key → role <code>anon</code>. Access token → role <code>authenticated</code>.</li>
+      <li>Sign-up has no Authorization: nobody is logged in yet; that's what it's for.</li>
+      <li>"We never send a user id. We send a token, and Supabase reads the id out of it."</li>
+    </ul>
+
+    <p><b>The JWT X-ray: what to say about each claim</b></p>
+    <ul>
+      <li><code>sub</code> (subject) = <b>who it's about</b>: the user's id, same as Authentication → Users. In Postgres it becomes <code>auth.uid()</code>.</li>
+      <li><code>role</code> = <code>authenticated</code>: the Postgres role. Policies <code>to authenticated</code> apply.</li>
+      <li><code>exp</code> = when it expires (1 hour).</li>
+      <li><code>iss</code> (issuer) = <b>who made it</b>: Supabase Auth.</li>
+      <li><code>aud</code> (audience) = <b>which service should accept it</b>, NOT which person. Supabase sets <code>authenticated</code>: "for the logged-in parts of the API". Same word as <code>role</code>, which is confusing. Skip it unless asked.</li>
+      <li>Wristband: <code>iss</code> = the venue that printed it, <code>aud</code> = "VIP area", <code>sub</code> = the person wearing it.</li>
+      <li>"Anyone can <b>read</b> a token. Nobody can <b>change</b> one": edit <code>sub</code> → signature breaks → 401.</li>
+    </ul>
+
+    <p><b>Why logged-in GET = <code>[]</code></b> (say it this way)</p>
+    <ul>
+      <li>Logging in didn't break anything. The token is valid: Supabase knows exactly who we are. <b>Authentication worked.</b></li>
+      <li>RLS is on. Friday's only rule says <code>to anon</code>. We're <code>authenticated</code> now, so <b>no rule covers us</b>. RLS's default is no.</li>
+      <li><b>Reading = a filter.</b> The query is allowed to run (Supabase grants the table to <code>authenticated</code>). RLS adds a hidden <code>WHERE</code>. No policy → it's false → every row filtered out → <b>200 <code>[]</code></b>.</li>
+      <li>"Nothing matched" is an answer, not an error. Same <code>[]</code> as Friday before the dev rules.</li>
+      <li>It isn't trying to give us <i>our</i> tasks yet. It asks "every task this role may see", and the answer is none.</li>
+    </ul>
+
+    <p><b>Why logged-in POST = 403</b></p>
+    <ul>
+      <li><b>Writing = a gate.</b> We hand it a new row; there's nothing to hide. It passes the check or it doesn't. No policy → <b>403</b>.</li>
+      <li>Friday, anon got <b>401</b>. Now Supabase knows who we are and still says no: <b>authorization</b>.</li>
+    </ul>
+
+    <p><b>What fixes it (Lecture 2)</b></p>
+    <ul>
+      <li><code>to authenticated</code> lets logged-in users in at all.</li>
+      <li><code>auth.uid() = user_id</code> keeps each user to their own rows.</li>
+      <li>Even <code>to authenticated using (true)</code> would stop the 403, but then everyone sees everything. The <code>auth.uid()</code> part is what makes it safe.</li>
+    </ul>
+    <p>Slide 11 = the picture. Slide 12 = filter vs gate on screen.</p>
   </aside>
 </section>
 
