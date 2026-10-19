@@ -70,6 +70,8 @@ my approval.</pre>
   <aside class="notes">
     <p><b>** LIVE, about 4 minutes. **</b> The curriculum shows users and tasks; Ticked has five tables, so export all five. <code>mkdir -p supabase/backups</code> in the root and move the CSVs from Downloads.</p>
     <p>Then in Claude (root, <code>/model</code> → Opus), paste the drop prompt (on the slide; also in <code>demo-kit/prompts.md</code>). It's ours, not the curriculum's: the curriculum assumes you've already emptied the project, and its prompt (next slide) says "I've currently deleted all tables". This is that step. Read the SQL out loud: <code>drop table … cascade</code> and the function. Approve. Table Editor: empty.</p>
+    <p><b>Approve only if</b> the SQL drops the 5 tables (<code>cascade</code> is fine) and <code>create_task_with_tags</code>. Nothing else.</p>
+    <p><b>If Claude asks "drop <code>rls_auto_enable()</code> too?" → NO, keep it.</b> It came with the Supabase project, not with Ticked. It turns RLS on for every new table, which is what we want when Claude rebuilds them. Say: <i>"Keep rls_auto_enable(). Only drop the five tables and create_task_with_tags."</i> Same for any function we didn't write.</p>
     <p>"The dev rules from Friday go with the tables. Good riddance."</p>
     <p><b>Backup:</b> <code>demo-kit/drop-tables.sql</code> in the SQL Editor.</p>
   </aside>
