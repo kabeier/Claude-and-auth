@@ -63,9 +63,13 @@
       <p class="small">The backups are also context: Claude reads them to see what our data looks like.</p>
     </div>
   </div>
+  <pre style="font-size:19px; margin-top:28px">I backed up all five tables to CSV in supabase/backups/. Using the Supabase MCP, drop every
+table in the public schema (users, projects, tags, tasks, task_tags) and the
+create_task_with_tags function, so the project is empty. Show me the SQL first and wait for
+my approval.</pre>
   <aside class="notes">
     <p><b>** LIVE, about 4 minutes. **</b> The curriculum shows users and tasks; Ticked has five tables, so export all five. <code>mkdir -p supabase/backups</code> in the root and move the CSVs from Downloads.</p>
-    <p>Then in Claude (root, <code>/model</code> → Opus), paste the drop prompt from <code>demo-kit/prompts.md</code>. Read the SQL out loud: <code>drop table … cascade</code> and the function. Approve. Table Editor: empty.</p>
+    <p>Then in Claude (root, <code>/model</code> → Opus), paste the drop prompt (on the slide; also in <code>demo-kit/prompts.md</code>). It's ours, not the curriculum's: the curriculum assumes you've already emptied the project, and its prompt (next slide) says "I've currently deleted all tables". This is that step. Read the SQL out loud: <code>drop table … cascade</code> and the function. Approve. Table Editor: empty.</p>
     <p>"The dev rules from Friday go with the tables. Good riddance."</p>
     <p><b>Backup:</b> <code>demo-kit/drop-tables.sql</code> in the SQL Editor.</p>
   </aside>
@@ -74,7 +78,8 @@
 <!-- ============ SUPABASE PROMPT (8–17) ============ -->
 <section class="slide" data-seg="The Supabase prompt" data-at="8">
   <h2>The Supabase prompt</h2>
-  <pre style="font-size:19px">I have confirmed my application works well with this type of database schema and am now ready
+  <p class="muted" style="font-size:21px; margin:-12px 0 10px">The curriculum's prompt, our paths in bold. The tables are gone now (last slide), so it starts from an empty project.</p>
+  <pre style="font-size:17px; padding:20px 28px">I have confirmed my application works well with this type of database schema and am now ready
 to implement authentication methods to my project.
 
 I would like you to take a look at the following resources:

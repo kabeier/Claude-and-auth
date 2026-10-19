@@ -8,6 +8,8 @@ Copy them from here during class. Each one says which folder Claude runs in. Lec
 
 ## Lecture 2, slide 4: drop the tables (after the CSV backups)
 
+Ours, not the curriculum's. The curriculum's prompt (slide 5) assumes the project is already empty ("I've currently deleted all tables"); this is that step.
+
 ```text
 I backed up all five tables to CSV in supabase/backups/. Using the Supabase MCP, drop every
 table in the public schema (users, projects, tags, tasks, task_tags) and the
