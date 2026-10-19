@@ -30,6 +30,7 @@ cat .mcp.json                    # supabase, in the ROOT (moved there Friday)
 rm -rf ~/demos/ticked-auth-snapshot && cp -a ~/demos/ticked ~/demos/ticked-auth-snapshot
 ```
 
+- **Postman:** if sign-up says `PGRST125 Invalid path`, `base_url` still ends in `/rest/v1` (check the environment dropdown: an environment variable beats the collection's).
 - **Postman:** Import `~/auth-kit/Ticked-Auth.postman_collection.json`. In its Variables, set `base_url` (no `/rest/v1`) and `publishable_key`, the same values as Friday's collection. **Save.**
 - **Check the env var name:** `grep VITE_ ~/demos/ticked/front-end/.env*`. The backup app reads `VITE_SUPABASE_PUBLISHABLE_KEY`. If you only have `VITE_SUPABASE_ANON_KEY`, add a second line with the same value: `VITE_SUPABASE_PUBLISHABLE_KEY=…`.
 
@@ -55,6 +56,7 @@ rm -rf ~/demos/ticked-auth-snapshot && cp -a ~/demos/ticked ~/demos/ticked-auth-
 | 10 | browser | JWT X-ray: paste `access_token` → `sub`, `role`, `exp` | "Readable by anyone, fakeable by no one." |
 | 10 | Postman | **3** anon GET → all tasks. **4** user GET → `[]`. **5** user POST → **403** | "Logged in, and you see less than a stranger." |
 | 11 (~31) | Supabase | Explain with the diagram, then **delete `test@ticked.app`** (Authentication → Users) | "The trigger only fires for new accounts." |
+| 12 (~33) | slide | Why `[]` but 403: reading = a filter, writing = a gate | "Authentication worked. Authorization has no rule for us yet." |
 
 ## Lecture 2 in class (Supabase Authentication)
 

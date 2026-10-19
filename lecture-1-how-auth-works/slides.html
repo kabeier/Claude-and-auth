@@ -144,6 +144,7 @@
 <section class="slide" data-seg="Live: a real token" data-at="26">
   <h2>Live: log in with Postman, then read the token</h2>
   <style>
+    .slide pre.policies { font-size: 22px; padding: 16px 24px; margin: 0 0 26px; }
     .reqs { font-size: 19px; }
     .reqs th, .reqs td { padding: 5px 10px; vertical-align: middle; }
     .reqs code { white-space: nowrap; }
@@ -189,6 +190,37 @@
 </section>
 
 <!-- ============ WRAP (35–40) ============ -->
+<section class="slide" data-seg="Live: a real token" data-at="33">
+  <h2>Logged in: why <code>[ ]</code>, and not an error?</h2>
+  <pre class="policies">tasks: RLS is ON
+  "dev: open access until auth"   to anon            ✅  Friday
+  (no policy)                     to authenticated   ❌  ← us, with the access token</pre>
+  <div class="cols">
+    <div class="card blue">
+      <h3>Reading = a filter</h3>
+      <p>RLS adds a hidden <code>WHERE</code> to every read.</p>
+      <p>No policy for us → no row can match → <b>200 <code>[ ]</code></b></p>
+      <p>"Nothing matched" is an answer, not an error.</p>
+    </div>
+    <div class="card red">
+      <h3>Writing = a gate</h3>
+      <p>A new row must pass the policy's check.</p>
+      <p>No policy for us → nothing can pass → <b>403</b></p>
+      <p>We asked to change something, and RLS said no.</p>
+    </div>
+  </div>
+  <p class="bottomline">Authentication worked. Authorization has no rule for us yet. Lecture 2 adds one.</p>
+  <aside class="notes">
+    <ul>
+      <li>Logging in didn't break anything. Supabase knows exactly who we are: the token is valid, role = <code>authenticated</code>, <code>auth.uid()</code> = our <code>sub</code>.</li>
+      <li>RLS's default is <b>no</b>. Friday's only rule says <code>to anon</code>, and we're not anon any more.</li>
+      <li><b>Why not an error on GET?</b> Supabase lets the <code>authenticated</code> role query the table at all (a table "grant"). RLS then decides <i>which rows</i>. It quietly removes every one. Same as Friday's <code>[]</code> before the dev rules.</li>
+      <li><b>Why an error on POST?</b> There's nothing to hide: we're handing it a new row. It either passes the check or it doesn't, so: 403.</li>
+      <li>Even <code>to authenticated using (true)</code> would make the 403 go away, but then every user sees every task. The <code>auth.uid() = user_id</code> part is what makes it safe. That's next lecture.</li>
+    </ul>
+  </aside>
+</section>
+
 <section class="slide" data-seg="Wrap up" data-at="35">
   <h2>What you now know</h2>
   <ul class="small">

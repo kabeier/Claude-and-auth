@@ -4,7 +4,7 @@ Two ~40-minute lectures for Code Platoon Phase III, Building Applications → Au
 
 Each deck is a single HTML file. Open it, press **P** for presenter notes in a second window, **T** to start the lecture clock, **O** for the slide overview, **F** for fullscreen.
 
-## Lecture 1: How Authentication Works (~40 min, 13 slides)
+## Lecture 1: How Authentication Works (~40 min, 14 slides)
 
 | ~min | Segment |
 |---|---|
