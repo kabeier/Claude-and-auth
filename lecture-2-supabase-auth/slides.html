@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Lecture 2 · Supabase Authentication</title>
 <link rel="stylesheet" href="../shared/deck.css">
+<style> pre b.ours { color: #ffe76a; font-weight: 400; } </style>
 </head>
 <body data-minutes="40">
 <div class="stage">
@@ -80,8 +81,8 @@ my approval.</pre>
 <!-- ============ SUPABASE PROMPT (8–17) ============ -->
 <section class="slide" data-seg="The Supabase prompt" data-at="8">
   <h2>The Supabase prompt</h2>
-  <p class="muted" style="font-size:21px; margin:-12px 0 10px">The curriculum's prompt, our paths in bold. The tables are gone now (last slide), so it starts from an empty project.</p>
-  <pre style="font-size:17px; padding:20px 28px">I have confirmed my application works well with this type of database schema and am now ready
+  <p class="muted" style="font-size:21px; margin:-12px 0 10px">The curriculum's prompt with our paths, plus <b style="color:#b8860b">our "Also for this project" block</b>. The tables are gone (last slide), so it starts empty.</p>
+  <pre style="font-size:14px; line-height:1.35; padding:16px 24px; white-space:pre-wrap">I have confirmed my application works well with this type of database schema and am now ready
 to implement authentication methods to my project.
 
 I would like you to take a look at the following resources:
@@ -101,10 +102,20 @@ Using these resources as context I would like you to conduct the following:
 After conducting each action, pause and ask for confirmation that your actions worked correctly
 before proceeding to the next step.
 
+<b class="ours">Also for this project:
+- Do the steps in this order: users, then the tables, then the RLS policies.
+- projects.user_id and tasks.user_id: not null, default auth.uid(), on delete cascade. The app will never send a user id.
+- Start with empty tables. Don't re-import the backups: their rows belong to a Demo User who has no login.
+- Tags stay shared: any signed-in user can read and add them.
+- My front end calls create_task_with_tags. Recreate it after the policies: no p_user_id, security invoker, executable by authenticated only.
+- Keep rls_auto_enable(). Only touch my app's tables and functions.
+- Before applying each step, show me the complete SQL. When you're done, rewrite supabase/schema.sql to match, header comments included.</b>
+
 Do you have any questions before executing this task?</pre>
   <aside class="notes">
     <p><b>** LIVE. **</b> Same Claude session, in the root ("the directory running your supabase project": <code>.mcp.json</code> moved there on Friday). Paste from <code>demo-kit/prompts.md</code>; the bold parts are our paths.</p>
     <p>Point at two lines: <b>"pause and ask for confirmation"</b> (we check every step) and <b>"Do you have any questions"</b> (it plans before it acts).</p>
+    <p><b>The yellow block is ours.</b> The curriculum's prompt is word for word above it. Our block answers what Claude asked in the dry run (order, backups, tags, <code>user_id</code>), and adds the one thing the curriculum misses for Ticked: rebuild <code>create_task_with_tags</code>. The drop step removed it, and <code>db.js</code> calls it to save a task. Without it, adding a task fails later. "Good prompts answer the questions before they're asked."</p>
     <p><b>Its questions:</b> answer with the "Likely questions" block in <code>prompts.md</code>. The big ones:</p>
     <ul>
       <li>name comes from the sign-up form;</li>
@@ -127,6 +138,7 @@ Do you have any questions before executing this task?</pre>
   </table>
   <p class="bottomline">At the tables pause, check one thing: <code>user_id</code> has <code>default auth.uid()</code>. The app never sends it.</p>
   <aside class="notes">
+    <p><b>With our "Also for this project" block, Claude should ask fewer of these, maybe none.</b> If it still asks, the answers are the same.</p>
     <p><b>Claude asked these four in the dry run</b> (a tabbed question box: Users table, Backup data, Tags, Order, Submit). All four answers are its <b>Recommended</b> option, option 1. The wording changes from run to run; if a question is different, use the "Likely questions" block in <code>prompts.md</code>.</p>
     <ul>
       <li><b>Users table → 1 Profile linked to auth.</b> Its preview: <code>id uuid primary key references auth.users(id) on delete cascade</code>, name, email unique, created_at. Scroll the preview ("3 lines hidden") to check the trigger is mentioned. Not "block deletes" (deleting an account would fail). Not "drop public.users" (the app shows <code>profile.name</code>, and tasks point at it).</li>

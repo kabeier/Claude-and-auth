@@ -29,7 +29,9 @@ Keep rls_auto_enable(). Only drop the five tables and create_task_with_tags.
 
 ---
 
-## Lecture 2, slide 5: the Supabase prompt (the curriculum's, paths filled in)
+## Lecture 2, slide 5: the Supabase prompt (the curriculum's, paths filled in, plus an "Also for this project" block)
+
+The "Also for this project" block is ours. It answers ahead of time what Claude asked in the dry run, and it adds the one thing the curriculum's prompt misses for Ticked: rebuilding `create_task_with_tags` (the drop step removed it, and `db.js` calls it to save a task).
 
 ```text
 I have confirmed my application works well with this type of database schema and am now ready to implement authentication methods to my project.
@@ -49,6 +51,15 @@ Using these resources as context I would like you to conduct the following:
 3. recreate my database tables on supabase
 
 After conducting each action, pause and ask for confirmation that your actions worked correctly before proceeding to the next step.
+
+Also for this project:
+- Do the steps in this order: users, then the tables, then the RLS policies.
+- projects.user_id and tasks.user_id: not null, default auth.uid(), on delete cascade. The app will never send a user id.
+- Start with empty tables. Don't re-import the backups: their rows belong to a Demo User who has no login.
+- Tags stay shared: any signed-in user can read and add them.
+- My front end calls create_task_with_tags. Recreate it after the policies: no p_user_id, security invoker, executable by authenticated only.
+- Keep rls_auto_enable(). Only touch my app's tables and functions.
+- Before applying each step, show me the complete SQL. When you're done, rewrite supabase/schema.sql to match, header comments included.
 
 Do you have any questions before executing this task?
 ```

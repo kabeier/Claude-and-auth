@@ -130,7 +130,7 @@
 
     <h4>5 · The Supabase prompt</h4>
     <ol class="steps">
-      <li>Same Claude session. Change the three paths if yours are different:
+      <li>Same Claude session. Change the three paths if yours are different. The "Also for my project" part is ours: it answers what Claude usually asks.
         <div class="cmdwrap"><pre class="cmd" style="white-space:pre-wrap"><code>I have confirmed my application works well with this type of database schema and am now ready to implement authentication methods to my project.
 
 I would like you to take a look at the following resources:
@@ -148,6 +148,14 @@ Using these resources as context I would like you to conduct the following:
 3. recreate my database tables on supabase
 
 After conducting each action, pause and ask for confirmation that your actions worked correctly before proceeding to the next step.
+
+Also for my project:
+- Do the steps in this order: users, then the tables, then the RLS policies.
+- Every user_id column: not null, default auth.uid(), on delete cascade. My app will never send a user id.
+- Start with empty tables. Don't re-import the backups: their rows belong to a user who has no login.
+- Check my front-end code for database functions it calls (supabase.rpc). Recreate each one after the policies, so the owner comes from auth.uid(): security invoker, executable by authenticated only.
+- Don't drop or change functions I didn't make, like rls_auto_enable().
+- Before applying each step, show me the complete SQL. When you're done, rewrite supabase/schema.sql to match.
 
 Do you have any questions before executing this task?</code></pre><button type="button" class="copy">Copy</button></div></li>
       <li>Good answers to its questions: the users table's id <b>is</b> the <code>auth.users</code> id, and a trigger fills it in. Every <code>user_id</code> defaults to <code>auth.uid()</code>. Every policy is <code>to authenticated</code> and allows only your own rows. Don't re-import the backups if their rows belong to a user who has no login. Update <code>supabase/schema.sql</code> when done.</li>
