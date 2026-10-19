@@ -19,6 +19,14 @@ my approval.
 
 **Backup:** paste `drop-tables.sql` into Supabase → SQL Editor → Run.
 
+**Approve if** the SQL drops only the 5 tables (`cascade` is fine) and `create_task_with_tags`.
+
+**If Claude asks about `rls_auto_enable()`** (or any function you didn't write): **keep it.** It came with the Supabase project, not with Ticked. It turns RLS on for every new table, which is what we want when Claude rebuilds them. Answer:
+
+```text
+Keep rls_auto_enable(). Only drop the five tables and create_task_with_tags.
+```
+
 ---
 
 ## Lecture 2, slide 5: the Supabase prompt (the curriculum's, paths filled in)

@@ -93,6 +93,7 @@ rm -rf ~/demos/ticked-auth-snapshot && cp -a ~/demos/ticked ~/demos/ticked-auth-
 
 ## Things to expect
 
+- **Claude asks whether to drop `rls_auto_enable()`:** no. It's Supabase's, not ours: it turns RLS on for new tables. Drop only the 5 tables and `create_task_with_tags`.
 - **Claude asks to re-import the backups:** say no. Their rows belong to the Demo User, who has no account, so `user_id` would point at nobody.
 - **Claude wants to keep `p_user_id`** in `create_task_with_tags`: ask it to drop the parameter and rely on `default auth.uid()`. Otherwise a user could create tasks for someone else (RLS would stop it with 403, but the parameter is pointless).
 - **"Email not confirmed" / Playwright stuck at "check your email":** Confirm email got turned back on. Turn it off, then delete the stuck user in Authentication → Users.
