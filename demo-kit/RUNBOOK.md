@@ -66,11 +66,12 @@ rm -rf ~/demos/ticked-auth-snapshot && cp -a ~/demos/ticked ~/demos/ticked-auth-
 | 5 (~8) | Claude | Paste the Supabase prompt | "Pause and ask for confirmation: we're the test." |
 | 6 (~10) | Claude | Its 4 questions: pick option 1 (Recommended) for each. then Submit | "Every answer is its Recommended one, and here's why." |
 | 7–8 (~11) | Claude + dashboard | At each pause, in order: Triggers/Functions, Table Editor, Policies (prompts.md table). At the tables pause, check the SQL has `user_id … default auth.uid()`. "Confirmed, continue." | — |
-| 10 (~19) | Claude | Paste the Vite + React prompt. Answer its questions. Approve the plan, allow edits for the session | "Four phases, each proven with Playwright." |
-| 11 (~21) | browser | `activity-what-comes-back/` while Claude builds | — |
-| 12 (~27) | Claude | Approve Playwright/MCP calls. After Register: Table Editor → users has a row (the trigger) | "Nobody inserted that row." |
-| 13 (~30) | 2 browsers | `cd front-end && npm run dev`. Maria (normal window) adds "Leg day"; Sam (private window) sees nothing. Refresh Maria. DevTools: Network → Bearer; Application → Local Storage. Log out | "Same key, different token." |
-| 14 (~35) | terminal | `git status` (no .env), commit | — |
+| 10 (~19) | Claude | Paste the Vite + React prompt (the full text, from prompts.md or the slide) | "Four phases, each proven with Playwright." |
+| 11 (~20) | Claude | Its 4 questions: option 1 each (refresh, confirm off, name+email+password, delete test users). Submit, approve the plan, allow edits for the session | — |
+| 12 (~21) | browser | `activity-what-comes-back/` while Claude builds | — |
+| 13 (~27) | Claude | Approve Playwright/MCP calls. Watch each phase pass (its test accounts get deleted after) | "Claude is testing like a user would." |
+| 14 (~30) | 2 browsers | `cd front-end && npm run dev`. Maria (normal window) adds "Leg day"; Sam (private window) sees nothing. Refresh Maria. DevTools: Network → Bearer; Application → Local Storage. Log out | "Same key, different token." |
+| 15 (~35) | terminal | `git status` (no .env), commit | — |
 
 **Time check, Lecture 2:** the two prompts are the risky part.
 

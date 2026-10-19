@@ -151,6 +151,19 @@ Each of these actions should be an independent phase. Utilize playwright to ensu
 Do you have any questions before completing these actions?
 ```
 
+### What Claude asked in the dry run (slide 11)
+
+Pick option 1 (Recommended) every time:
+
+| Claude asks | Pick | Why |
+|---|---|---|
+| What should the "User Confirmation" phase cover? | **1 Session survives refresh** | The curriculum means "confirm who is logged in", not the email link |
+| Playwright can't open an inbox. How should the tests handle Confirm email? | **1 Turn confirmation off** | Already off since Lecture 1 |
+| What should the Register form ask for? | **1 Name, email, password** | The name goes to the trigger through the sign-up metadata |
+| Playwright creates real accounts. What happens to them? | **1 Delete after tests** | Clean Users list; frees maria@ / sam@ for the live payoff |
+
+If Claude says the User Confirmation line was "cut off", it got the shortened version: paste the full prompt below.
+
 ### Likely questions from Claude, and good answers
 
 ```text
@@ -165,9 +178,9 @@ Do you have any questions before completing these actions?
   fills it in with auth.uid().
 - The URL and key are already in front-end/.env. Keep the variable names that are there.
   Never use the secret key.
-- Email confirmation is off. For Playwright, register test accounts such as
-  maria@ticked.app and sam@ticked.app (password: ticked123), and check that each one sees
-  only their own tasks.
+- Email confirmation is off. For Playwright, use throwaway test accounts, check that each
+  one sees only their own tasks, and delete them afterwards. (I'll register maria@ and
+  sam@ticked.app myself afterwards.)
 - Add the Register / Log in / Log out / refresh steps to user_journey.md.
 - Don't change the rest of the UI.
 ```

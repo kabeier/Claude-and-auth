@@ -217,25 +217,27 @@ create policy "Users can view own tasks"
 
 <section class="slide" data-seg="The front end" data-at="19">
   <h2>The Vite + React prompt</h2>
-  <pre style="font-size:19px">Utilizing the following resources:
+  <pre style="font-size:15px; line-height:1.4; padding:18px 26px; white-space:pre-wrap">Utilizing the following resources:
 
 - Supabase db schema: <b>supabase/schema.sql</b>
 - user journey: <b>front-end/app_outline/user_journey.md</b>
-- Project API url: <b>https://&lt;id&gt;.supabase.co</b>
-- Project API Key: <b>sb_publishable_…</b>
+- Project API url: <b>https://&lt;your-project-id&gt;.supabase.co</b>
+- Project API Key: <b>sb_publishable_&lt;your key&gt;</b>
 
-I would like you to update the functionality for the User Authentication process. Consider the
-following actions a user can take:
+I would like you to update the functionality for the User Authentication process. Consider the following actions a user can take:
 
-- Register · Log In · Log out · User Confirmation (… refreshes the browser …)
+- Register: A brand new user can sign up for our application and interact with our site.
+- Log In: A returning user can interact with our site and ONLY their corresponding data
+- Log out: A logged in user can end their session and exit our website while removing their credentials from the front-end code.
+- User Confirmation: While logged in we need to have a way of confirming who the user is
+    - while logged in if the user refreshes the browser, we should be able of leveraging the current credentials to recover the logged in `user` and their corresponding`data`
 
-Each of these actions should be an independent phase. Utilize playwright to ensure completion of
-each phase prior to moving on to the next one.
+Each of these actions should be an independent phase. Utilize playwright to ensure completion of each phase prior to moving on to the next one.
 
 Do you have any questions before completing these actions?</pre>
-  <p class="bottomline">Full text in <code>demo-kit/prompts.md</code>. The publishable key is fine to paste; the secret key never is.</p>
+  <p class="bottomline">The publishable key is fine to paste; the secret key never is.</p>
   <aside class="notes">
-    <p><b>** LIVE. **</b> Same session. Paste the full prompt from <code>prompts.md</code> (the slide shortens the four actions).</p>
+    <p><b>** LIVE. **</b> Same session. Copy from <code>prompts.md</code> (or this slide: it's the full text now) and fill in the URL and key from <code>front-end/.env</code>. (In the dry run, a shortened version on this slide made Claude ask what "User Confirmation" meant.)</p>
     <p><b>Its questions:</b> use the "Likely questions" block:</p>
     <ul>
       <li>/login and /register;</li>
@@ -243,9 +245,32 @@ Do you have any questions before completing these actions?</pre>
       <li>name + Log out in the header;</li>
       <li>all Supabase calls stay in <code>db.js</code>;</li>
       <li>remove the Demo User and its id variable (<code>VITE_DEMO_USER_ID</code> or <code>VITE_DEFAULT_USER_ID</code>);</li>
-      <li>test accounts maria@ / sam@ticked.app.</li>
+      <li>Playwright's test accounts: throwaway, deleted afterwards (we register Maria and Sam ourselves in the payoff).</li>
     </ul>
+    <p>Claude's dry-run questions and our picks: next slide.</p>
     <p>Check the plan: mostly new files (pages, an auth context) plus <code>db.js</code>; nothing else in the UI should change. Approve; "Yes, allow all edits during this session". Start the activity.</p>
+  </aside>
+</section>
+
+<section class="slide" data-seg="The front end" data-at="20">
+  <h2>Claude's questions: what we pick</h2>
+  <table class="dbt small">
+    <tr><th>Claude asks</th><th>Pick</th><th>Why</th></tr>
+    <tr><td>What should "User Confirmation" cover?</td><td><b>Session survives refresh</b></td><td>The curriculum means "who is logged in?", not the email link. Refresh keeps you logged in; logged out → Log in page</td></tr>
+    <tr><td>Playwright can't open an inbox. Confirm email?</td><td><b>Turn confirmation off</b></td><td>Already off since Lecture 1. Register logs you straight in</td></tr>
+    <tr><td>What should Register ask for?</td><td><b>Name, email, password</b></td><td>The name goes in the sign-up metadata; the trigger saves it in <code>users</code></td></tr>
+    <tr><td>Playwright makes real accounts. Then what?</td><td><b>Delete after tests</b></td><td>Keeps Authentication → Users clean, and frees maria@ / sam@ for us to register live</td></tr>
+  </table>
+  <p class="bottomline">All four: its Recommended option. Then Submit.</p>
+  <aside class="notes">
+    <p><b>Claude asked these four in the dry run</b> (tabs: Confirmation, Email check, Register, Test users, Submit). The wording changes from run to run.</p>
+    <ul>
+      <li><b>Confirmation → 1 Session survives refresh.</b> Not option 2 or 3: email confirmation needs an inbox, and Confirm email is off. "User Confirmation" in the curriculum = "confirm who the user is": the top bar shows their name, and a refresh keeps them logged in (<code>getSession()</code> reads the saved tokens).</li>
+      <li><b>Email check → 1 Turn confirmation off.</b> It's already off (Lecture 1, slide 10). Option 2 edits <code>auth.users</code> with SQL: works, but more to explain.</li>
+      <li><b>Register → 1 Name, email, password.</b> Without a name, the trigger falls back to the part of the email before the @. Claude may add a "confirm password" field: fine.</li>
+      <li><b>Test users → 1 Delete after tests.</b> Playwright uses throwaway addresses like <code>e2e+&lt;time&gt;@ticked.app</code> and deletes them; the cascade removes their rows. That's why we see the trigger's row in the payoff, not here.</li>
+    </ul>
+    <p>Then Submit, check the plan (new pages + an auth context + <code>db.js</code>; the rest of the UI unchanged), approve, "Yes, allow all edits during this session". Start the activity.</p>
   </aside>
 </section>
 
@@ -290,7 +315,7 @@ Do you have any questions before completing these actions?</pre>
   </div>
   <aside class="notes">
     <p><b>** LIVE. **</b> Approve the Playwright and Supabase calls. Point at the browser window Playwright drives.</p>
-    <p>After phase 1, open Table Editor → users: "Nobody inserted that row. The trigger did."</p>
+    <p>Playwright deletes its test accounts after each phase, so the "nobody inserted that row" moment happens in the payoff (next slide): register Maria, then Table Editor → users.</p>
     <p><b>Time check:</b> if Claude isn't on the Log out phase by ~min 31, stop it and use the backup (RUNBOOK → "Time check, Lecture 2").</p>
   </aside>
 </section>

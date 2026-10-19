@@ -16,7 +16,7 @@ Each deck is a single HTML file. Open it, press **P** for presenter notes in a s
 | 26–35 | Live: sign up in Postman, decode the token, `[]` and 403 as a logged-in user; how Postgres knows who's asking |
 | 35–40 | Wrap up, homework Part I |
 
-## Lecture 2: Supabase Authentication (~40 min, 15 slides)
+## Lecture 2: Supabase Authentication (~40 min, 16 slides)
 
 | ~min | Segment |
 |---|---|
