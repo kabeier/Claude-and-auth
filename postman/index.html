@@ -1,0 +1,247 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ticked Auth in Postman · Authentication</title>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&display=swap" rel="stylesheet">
+<style>
+  :root { --paper:#f4f6f9; --grid:#dce3ee; --ink:#1b2230; --muted:#5b6577; --blue:#2552c9; --green:#13795b; --sticky:#ffe76a; --red:#b3261e; }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: 'Atkinson Hyperlegible', system-ui, sans-serif; color: var(--ink); font-size: 18px; line-height: 1.55;
+    background: var(--paper) linear-gradient(var(--grid) 1px, transparent 1px) -1px -1px / 40px 40px,
+                linear-gradient(90deg, var(--grid) 1px, transparent 1px) -1px -1px / 40px 40px; }
+  main { max-width: 900px; margin: 0 auto; padding: 48px 28px 80px; }
+  .back { color: var(--blue); font-weight: 700; }
+  h1 { font: 800 clamp(40px, 6vw, 64px)/0.98 'Bricolage Grotesque', sans-serif; letter-spacing: -0.03em; margin: 18px 0 14px; }
+  .lede { color: var(--muted); font-size: 20px; margin: 0 0 28px; max-width: 62ch; }
+  h2 { font: 800 28px/1.15 'Bricolage Grotesque', sans-serif; margin: 0 0 10px; }
+  h3 { font: 800 21px 'Bricolage Grotesque', sans-serif; margin: 26px 0 6px; }
+  section { background: #fff; border: 2px solid var(--ink); border-radius: 4px; padding: 28px; margin-bottom: 28px; }
+  section > p { margin: 0 0 14px; }
+  .choose { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 32px; }
+  .choose a { display: block; background: #fff; border: 2px solid var(--grid); border-radius: 4px; padding: 16px 18px; color: var(--ink); text-decoration: none; }
+  .choose a:hover, .choose a:focus-visible { border-color: var(--blue); }
+  .choose b { display: block; color: var(--blue); font-size: 20px; }
+  .choose span { color: var(--muted); font-size: 16px; }
+  @media (max-width: 700px) { .choose { grid-template-columns: 1fr; } }
+  ol.steps { padding-left: 1.4em; margin: 0 0 8px; }
+  ol.steps > li { margin-bottom: 14px; }
+  ol.steps > li::marker { font-weight: 700; color: var(--blue); }
+  code { font-size: 0.9em; background: #e8ecf3; padding: 1px 5px; border-radius: 3px; }
+  .cmdwrap { position: relative; margin: 8px 0 6px; }
+  pre.cmd { background: var(--ink); color: #fff; padding: 16px 18px; padding-right: 90px; border-radius: 4px; overflow-x: auto; margin: 0; font-size: 15px; }
+  pre.cmd code { background: none; padding: 0; }
+  pre.json { max-height: 420px; }
+  pre.pic { background: #fff; border: 2px solid var(--grid); border-radius: 4px; padding: 14px 18px; overflow-x: auto; font-size: 15px; margin: 8px 0 14px; }
+  .copy { position: absolute; top: 10px; right: 10px; font: 700 14px 'Atkinson Hyperlegible'; padding: 6px 12px; border-radius: 4px; border: 0; background: var(--sticky); color: var(--ink); cursor: pointer; }
+  .note { margin: 10px 0 0; padding: 14px 18px; background: var(--sticky); transform: rotate(-0.4deg); }
+  .req { border: 2px solid var(--grid); border-radius: 4px; padding: 16px 18px; margin: 14px 0; }
+  .req h3 { margin: 0 0 8px; display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+  .method { font: 700 15px 'Atkinson Hyperlegible'; color: #fff; background: var(--blue); padding: 2px 8px; border-radius: 3px; }
+  .method.post { background: var(--green); }
+  .req dl { display: grid; grid-template-columns: max-content 1fr; gap: 4px 14px; margin: 0; }
+  .req dt { font-weight: 700; color: var(--muted); }
+  .req dd { margin: 0; overflow-wrap: anywhere; }
+  .expect { color: var(--green); font-weight: 700; }
+  .bad { color: var(--red); font-weight: 700; }
+  table { width: 100%; border-collapse: collapse; font-size: 16px; }
+  th, td { text-align: left; padding: 10px 8px; border-bottom: 1px solid var(--grid); vertical-align: top; }
+  th { font-size: 15px; color: var(--muted); }
+  .dl { display: inline-block; background: var(--sticky); color: var(--ink); font-weight: 700; text-decoration: none; padding: 12px 18px; border-radius: 4px; margin: 4px 0 10px; }
+  details { margin-top: 10px; } summary { cursor: pointer; font-weight: 700; color: var(--blue); }
+  a { color: var(--blue); }
+  a:focus-visible, summary:focus-visible, .copy:focus-visible { outline: 3px solid var(--blue); outline-offset: 2px; }
+</style>
+</head>
+<body>
+<main>
+  <a class="back" href="../">← Authentication home</a>
+  <h1>Ticked Auth in Postman</h1>
+  <p class="lede">Do what the login form will do, by hand: sign up, get a token, then send the same request as a stranger and as a logged-in user. Build it yourself (best for learning), or import the ready-made collection at the bottom.</p>
+
+  <div class="choose">
+    <a href="#build"><b>Build it yourself</b><span>Set up, then 5 requests in order. About 15 minutes.</span></a>
+    <a href="#import"><b>Import the ready-made collection</b><span>Download or copy the JSON, then set two variables.</span></a>
+  </div>
+
+  <section>
+    <h2>Before you start</h2>
+    <ol class="steps">
+      <li><b>Postman is installed</b> and you're signed in (Full-Stack Apps homework, step 1).</li>
+      <li><b>Turn off Confirm email:</b> Supabase → <b>Authentication → Sign In / Providers → Email</b> → <b>Confirm email</b> off → <b>Save</b>. With it on, sign-up sends an email and gives you no token.</li>
+      <li><b>Your Project URL:</b> Supabase → <b>Integrations → Data API</b> → <b>Project URL</b>. If it ends in <code>/rest/v1/</code>, delete that part.</li>
+      <li><b>Your publishable key:</b> <b>Project Settings → API Keys</b> → <b>Publishable key</b> (starts <code>sb_publishable_</code>). Never the secret key.</li>
+      <li><b>Using your own app?</b> Everything works the same. Swap <code>tasks</code> for one of your tables, and the body for your columns.</li>
+    </ol>
+    <p>The one picture to keep in mind:</p>
+<pre class="pic">apikey: &lt;publishable key&gt;      → WHICH PROJECT  (never changes)
+Authorization: Bearer &lt;...&gt;     → WHICH USER
+
+  Bearer &lt;publishable key&gt;  → role anon           (a stranger)
+  Bearer &lt;access_token&gt;     → role authenticated  (logged in)
+                              auth.uid() = the token's sub</pre>
+  </section>
+
+  <section id="build">
+    <h2>Build it yourself</h2>
+
+    <h3>1 · Make the collection</h3>
+    <ol class="steps">
+      <li>Postman → <b>New</b> → <b>Collection</b>. Name it <b>Ticked Auth</b>.</li>
+      <li>Click the collection, open the <b>Variables</b> tab, and add three rows:
+        <table>
+          <tr><th>Variable</th><th>Value</th></tr>
+          <tr><td><code>base_url</code></td><td>Your Project URL, <b>no <code>/rest/v1</code></b> on the end:<br><code>https://your-project-id.supabase.co</code></td></tr>
+          <tr><td><code>publishable_key</code></td><td>Your publishable key</td></tr>
+          <tr><td><code>access_token</code></td><td>Leave it empty. Sign up fills it in.</td></tr>
+        </table></li>
+      <li>Click <b>Save</b> (top right). Without it, the variables are empty.</li>
+    </ol>
+    <p class="note"><b>Why no <code>/rest/v1</code>?</b> One project URL has two services. <code>/auth/v1/…</code> is Supabase Auth (logins), and <code>/rest/v1/…</code> is your tables. Each request adds its own path.</p>
+
+    <h3>2 · Sign up and keep the token</h3>
+    <div class="req">
+      <h3><span class="method post">POST</span> 1 Sign up</h3>
+      <dl>
+        <dt>URL</dt><dd><code>{{base_url}}/auth/v1/signup</code></dd>
+        <dt>Headers</dt><dd><b>Headers</b> tab → <b>Bulk Edit</b> → paste:
+          <div class="cmdwrap"><pre class="cmd"><code>apikey:{{publishable_key}}
+Content-Type:application/json</code></pre><button type="button" class="copy">Copy</button></div>
+          No <code>Authorization</code> yet: nobody is logged in. That's what this request is for.</dd>
+        <dt>Body</dt><dd><b>Body</b> → <b>raw</b> → <b>JSON</b>:
+          <div class="cmdwrap"><pre class="cmd"><code>{"email": "test@ticked.app", "password": "password123"}</code></pre><button type="button" class="copy">Copy</button></div></dd>
+        <dt>Expect</dt><dd><span class="expect">200</span> with <code>access_token</code> (the JWT), <code>refresh_token</code>, <code>expires_in: 3600</code> (1 hour) and <code>user</code>.</dd>
+        <dt>Check</dt><dd>Supabase → <b>Authentication → Users</b>: the account is there. That's Supabase Auth's own table, <code>auth.users</code>.</dd>
+      </dl>
+    </div>
+    <p><b>Save the token into the variable.</b> Pick one:</p>
+    <ol class="steps">
+      <li><b>By hand:</b> copy the <code>access_token</code> value from the response (without the quotes). Paste it into the collection's <code>access_token</code> variable. <b>Save.</b> Redo this every time you get a new token.</li>
+      <li><b>Automatically:</b> in the request, open <b>Scripts → Post-response</b> (older Postman: <b>Tests</b>) and paste the script below. Send again with a new email, or use <b>2 Log in</b>. The variable fills itself.
+        <div class="cmdwrap"><pre class="cmd"><code>const body = pm.response.json();
+if (body.access_token) { pm.collectionVariables.set('access_token', body.access_token); }</code></pre><button type="button" class="copy">Copy</button></div></li>
+    </ol>
+
+    <div class="req">
+      <h3><span class="method post">POST</span> 2 Log in</h3>
+      <dl>
+        <dt>URL</dt><dd><code>{{base_url}}/auth/v1/token?grant_type=password</code></dd>
+        <dt>Headers</dt><dd>Same as Sign up. Easiest: right-click <b>1 Sign up</b> → <b>Duplicate</b>, rename it, change the URL.</dd>
+        <dt>Body</dt><dd>The same email and password.</dd>
+        <dt>Expect</dt><dd><span class="expect">200</span> and a <b>new</b> pair of tokens. This is what the Log in button will send. Use it whenever your token expires (after an hour).</dd>
+      </dl>
+    </div>
+
+    <h3>3 · Read the token</h3>
+    <ol class="steps">
+      <li>Paste the access token into the <a href="../lecture-1-how-auth-works/jwt-xray/" target="_blank" rel="noopener">JWT X-ray</a>. Nothing leaves the page.</li>
+      <li>Find <code>sub</code> (your user id: compare it with Authentication → Users), <code>role</code> (<code>authenticated</code>) and <code>exp</code> (one hour from now).</li>
+      <li>Anyone can <b>read</b> a token. Nobody can <b>change</b> one: the signature would stop matching.</li>
+    </ol>
+
+    <h3>4 · The same table, as a stranger and as a user</h3>
+    <div class="req">
+      <h3><span class="method">GET</span> 3 GET tasks as anon (a stranger)</h3>
+      <dl>
+        <dt>URL</dt><dd><code>{{base_url}}/rest/v1/tasks</code></dd>
+        <dt>Headers</dt><dd><div class="cmdwrap"><pre class="cmd"><code>apikey:{{publishable_key}}
+Authorization:Bearer {{publishable_key}}</code></pre><button type="button" class="copy">Copy</button></div></dd>
+        <dt>Body</dt><dd>none</dd>
+        <dt>Expect</dt><dd><span class="expect">200</span>, every task. Friday's dev rules are <code>to anon</code>, so strangers get in.</dd>
+      </dl>
+    </div>
+
+    <div class="req">
+      <h3><span class="method">GET</span> 4 GET tasks as the logged-in user</h3>
+      <dl>
+        <dt>URL</dt><dd><code>{{base_url}}/rest/v1/tasks</code></dd>
+        <dt>Headers</dt><dd>Only the <code>Authorization</code> line changes:
+          <div class="cmdwrap"><pre class="cmd"><code>apikey:{{publishable_key}}
+Authorization:Bearer {{access_token}}</code></pre><button type="button" class="copy">Copy</button></div></dd>
+        <dt>Body</dt><dd>none</dd>
+        <dt>Expect</dt><dd><span class="expect">200 <code>[]</code></span>. Logged in, and you see <b>less</b> than a stranger. Why? See below.</dd>
+      </dl>
+    </div>
+
+    <div class="req">
+      <h3><span class="method post">POST</span> 5 POST a task as the logged-in user</h3>
+      <dl>
+        <dt>URL</dt><dd><code>{{base_url}}/rest/v1/tasks</code></dd>
+        <dt>Headers</dt><dd><div class="cmdwrap"><pre class="cmd"><code>apikey:{{publishable_key}}
+Authorization:Bearer {{access_token}}
+Content-Type:application/json</code></pre><button type="button" class="copy">Copy</button></div></dd>
+        <dt>Body</dt><dd><div class="cmdwrap"><pre class="cmd"><code>{"title": "Logged-in task"}</code></pre><button type="button" class="copy">Copy</button></div></dd>
+        <dt>Expect</dt><dd><span class="bad">403</span> "new row violates row-level security policy". Friday's anon POST without a rule got 401. Now Supabase knows who you are, and still says no: <b>authorization</b>.</dd>
+      </dl>
+    </div>
+
+    <h3>Why <code>[]</code> on 4 and 403 on 5?</h3>
+<pre class="pic">tasks: RLS is ON
+  "dev: open access until auth"  to anon           ✅  Friday
+  (no policy)                    to authenticated  ❌  ← you</pre>
+    <ul>
+      <li><b>Authentication worked.</b> The token is valid, so Supabase knows exactly who you are. But no rule covers <code>authenticated</code>, and RLS's default is <b>no</b>.</li>
+      <li><b>Reading = a filter.</b> RLS adds a hidden <code>WHERE</code> to the query. No policy → no row can match → <b>200 <code>[]</code></b>. "Nothing matched" is an answer, not an error.</li>
+      <li><b>Writing = a gate.</b> A new row must pass the policy's check. No policy → nothing can pass → <b>403</b>.</li>
+      <li><b>The fix (Lecture 2):</b> policies <code>to authenticated</code> with <code>auth.uid() = user_id</code>, so each user gets only their own rows.</li>
+      <li><b>Already did Lecture 2 on your own app?</b> Then 4 gives only your rows, and 5 gives <span class="expect">201</span>.</li>
+    </ul>
+
+    <h3>5 · Break it on purpose</h3>
+    <ol class="steps">
+      <li><b>2 Log in</b> with a wrong password → <span class="bad">400</span> "Invalid login credentials". Authentication said no.</li>
+      <li>Change one letter of <code>access_token</code>, then send <b>4</b> → <span class="bad">401</span>. The signature no longer matches. Change it back (or log in again).</li>
+      <li><b>1 Sign up</b> again with the same email → an error that the user already exists.</li>
+    </ol>
+
+    <h3>6 · Clean up</h3>
+    <ol class="steps">
+      <li>Supabase → <b>Authentication → Users</b> → delete <code>test@ticked.app</code>. Lecture 2's trigger only makes a <code>users</code> row for <b>new</b> accounts, so start Lecture 2 with none.</li>
+    </ol>
+  </section>
+
+  <section id="import">
+    <h2>Import the ready-made collection</h2>
+    <p>The same 5 requests, already built, with the script that saves the token. Good as a check against yours, or as a backup.</p>
+    <ol class="steps">
+      <li>Get the collection: <a class="dl" href="../demo-kit/Ticked-Auth.postman_collection.json" download>Download Ticked-Auth.postman_collection.json</a><br>
+        or copy the JSON from the box below.</li>
+      <li>Postman → <b>Import</b> (top left). Drag the file in, <b>or</b> paste the copied JSON into the box.</li>
+      <li>Click the new <b>Ticked Auth</b> collection → <b>Variables</b>. Fill in <code>base_url</code> (no <code>/rest/v1</code> on the end) and <code>publishable_key</code>. Leave <code>access_token</code> empty. <b>Save</b>.</li>
+      <li>Check the <b>environment</b> dropdown (top right) says <b>No environment</b>. An environment variable with the same name beats the collection's.</li>
+      <li>Send the requests in their numbered order. <b>1 Sign up</b> and <b>2 Log in</b> save the token for you; 3, 4 and 5 use it. Want a different account? Change the email in both bodies.</li>
+    </ol>
+    <details>
+      <summary>Show the collection JSON</summary>
+      <div class="cmdwrap"><pre class="cmd json"><code id="json">Loading…</code></pre><button type="button" class="copy">Copy</button></div>
+    </details>
+  </section>
+
+  <section>
+    <h2>When something breaks</h2>
+    <table>
+      <tr><th>You see</th><th>It means</th><th>Fix</th></tr>
+      <tr><td><code>PGRST125</code> "Invalid path" on sign up</td><td><code>base_url</code> ends in <code>/rest/v1</code>, so the request went to <code>…/rest/v1/auth/v1/signup</code></td><td>Delete <code>/rest/v1</code> from <code>base_url</code>. Hover <code>{{base_url}}</code> to see its value; check the environment dropdown too</td></tr>
+      <tr><td>Sign up gives 200 but no <code>access_token</code></td><td>Confirm email is on: Supabase sent an email instead</td><td>Turn it off, delete the user, sign up again</td></tr>
+      <tr><td><b>429</b> "email rate limit exceeded"</td><td>Same: Confirm email is on, and the built-in sender hit its limit</td><td>Turn Confirm email off</td></tr>
+      <tr><td><b>400</b> "Email not confirmed" on log in</td><td>The account was made while Confirm email was on</td><td>Delete it, sign up again</td></tr>
+      <tr><td><b>401</b> "JWT expired"</td><td>The access token is over an hour old</td><td>Send <b>2 Log in</b> again</td></tr>
+      <tr><td><b>401</b> on 4 or 5 straight after sign up</td><td><code>access_token</code> is empty or half-pasted</td><td>Re-copy it (no quotes) and <b>Save</b>, or add the script</td></tr>
+      <tr><td><b>401</b> "Invalid API key"</td><td>Wrong or partial publishable key</td><td>Re-copy it, Save</td></tr>
+      <tr><td>Request 3 gives <code>[]</code></td><td>Your project has no dev rules <code>to anon</code></td><td>Fine: that just means strangers are already locked out</td></tr>
+      <tr><td>Red <code>{{variables}}</code></td><td>Variables not saved, or the request is outside the collection</td><td>Save the Variables tab</td></tr>
+    </table>
+  </section>
+</main>
+<script>
+  fetch('../demo-kit/Ticked-Auth.postman_collection.json')
+    .then((r) => r.text())
+    .then((t) => { document.getElementById('json').textContent = t })
+    .catch(() => { document.getElementById('json').textContent = 'Could not load the JSON here. Use the Download button above.' })
+  document.querySelectorAll('.copy').forEach((b) => b.onclick = async () => {
+    await navigator.clipboard.writeText(b.previousElementSibling.innerText.trim()); b.textContent = 'Copied'; setTimeout(() => (b.textContent = 'Copy'), 1500)
+  })
+</script>
+</body>
+</html>

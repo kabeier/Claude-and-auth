@@ -9,7 +9,7 @@
 | File | What it is |
 |---|---|
 | `prompts.md` | Every prompt, in order, plus good answers to Claude's questions and what to check at each pause |
-| `Ticked-Auth.postman_collection.json` | Lecture 1's Postman demo: sign up, log in, then GET/POST as anon vs as the user |
+| `Ticked-Auth.postman_collection.json` | (step-by-step page: `postman/`) Lecture 1's Postman demo: sign up, log in, then GET/POST as anon vs as the user |
 | `drop-tables.sql` | Backup for the drop prompt (also clears half-built auth tables and auth users) |
 | `dev-policies.sql` | Friday's temporary rules (used by the reset) |
 | `reset-to-start.sql` | After a dry run: Supabase back to Monday's start (Friday's tables, dev rules, Demo User, 3 tasks, no auth users) |

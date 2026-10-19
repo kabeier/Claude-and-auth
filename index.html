@@ -72,7 +72,7 @@
       <ol>
         <li><a href="lecture-1-how-auth-works/activity-bouncer-or-vip/" target="_blank" rel="noopener"><b>Activity: Bouncer or VIP List?</b><span>Situations in Ticked. Authentication, authorization, or allowed?</span></a></li>
         <li><a href="lecture-1-how-auth-works/jwt-xray/" target="_blank" rel="noopener"><b>JWT X-ray</b><span>Paste an access token and see its three parts. Nothing leaves the page.</span></a></li>
-        <li><a href="demo-kit/Ticked-Auth.postman_collection.json" download><b>Ticked Auth for Postman</b><span>Sign up, log in, then send requests as a stranger and as a user. Import it in Postman.</span></a></li>
+        <li><a href="postman/" target="_blank" rel="noopener"><b>Ticked Auth in Postman</b><span>Step-by-step: sign up, get a token, then send requests as a stranger and as a user. Build it yourself, or import the ready-made collection.</span></a></li>
       </ol>
     </section>
     <section>
@@ -99,7 +99,7 @@
 
     <h4>2 · Get a token in Postman</h4>
     <ol class="steps">
-      <li>Download <a href="demo-kit/Ticked-Auth.postman_collection.json" download>Ticked Auth</a>, then in Postman: <b>Import</b>. In the collection's <b>Variables</b>, set <code>base_url</code> (no <code>/rest/v1</code>) and <code>publishable_key</code>, the same values as Part I of the full-stack homework. <b>Save.</b></li>
+      <li>Follow <a href="postman/" target="_blank" rel="noopener">Ticked Auth in Postman</a>: build the requests yourself, or download the collection there and <b>Import</b> it. In the collection's <b>Variables</b>, set <code>base_url</code> (no <code>/rest/v1</code>) and <code>publishable_key</code>, the same values as Part I of the full-stack homework. <b>Save.</b></li>
       <li>Send <b>1 Sign up</b>. You get <code>access_token</code>, <code>refresh_token</code> and <code>expires_in: 3600</code>. A script saves the access token for the next requests.</li>
       <li>Supabase → <b>Authentication → Users</b>: your new account is there.</li>
     </ol>
