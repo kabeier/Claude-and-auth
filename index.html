@@ -118,7 +118,10 @@
 
     <h4>4 · Back up, then drop</h4>
     <ol class="steps">
-      <li>Commit first: <code>git add -A && git commit -m "Before auth"</code>.</li>
+      <li>Commit first: <code>git add -A && git commit -m "Before auth"</code>.<br>
+        <b>Or ask Claude</b> (in your project root):
+        <div class="cmdwrap"><pre class="cmd" style="white-space:pre-wrap"><code>Commit everything with the message "Before auth". Run git status first and show me the list of files. Make sure no .env or .mcp.json file is included, and wait for my approval before you commit.</code></pre><button type="button" class="copy">Copy</button></div>
+        Claude asks before running each git command. Read the file list it shows you before you say yes.</li>
       <li>Supabase → <b>Table Editor</b> → each table → <b>Export → Export to CSV</b>. Save them in <code>supabase/backups/</code> (for example <code>users_backup_2026-10-19.csv</code>).</li>
       <li>Confirm email is off (step 1), and Authentication → Users is empty.</li>
       <li>In Claude, in your project root (where <code>.mcp.json</code> is), <code>/model</code> → <b>Opus</b>, then:
@@ -186,7 +189,13 @@ Do you have any questions before completing these actions?</code></pre><button t
     <h4>8 · Commit</h4>
     <ol class="steps">
       <li>Read Claude's summary, especially its <b>assumptions</b>.</li>
-      <li><code>git status</code>: no <code>.env</code>. Commit and push.</li>
+      <li><code>git status</code>: no <code>.env</code>. Commit and push:
+        <div class="cmdwrap"><pre class="cmd"><code>git add -A
+git commit -m "Add authentication and user RLS"
+git push</code></pre><button type="button" class="copy">Copy</button></div>
+        <b>Or ask Claude:</b>
+        <div class="cmdwrap"><pre class="cmd" style="white-space:pre-wrap"><code>Run git status and show me what changed. Check that no .env or .mcp.json file is included. Then suggest a commit message that describes the authentication work, and wait for my approval. After I approve, commit and push.</code></pre><button type="button" class="copy">Copy</button></div>
+        Check its file list yourself: if you see <code>.env</code> or <code>.mcp.json</code>, say no and ask Claude to add them to <code>.gitignore</code> first.</li>
     </ol>
   </section>
 
