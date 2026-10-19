@@ -92,7 +92,7 @@
     email: () => 'their email',
     exp: (v) => `expires ${when(v)}. After that: 401, and supabase-js swaps the refresh token for a new one`,
     iat: (v) => `issued ${when(v)}`,
-    aud: () => 'who the token is for',
+    aud: () => `the <b>audience</b>: which kind of service should accept this token (not which person; that's <code>sub</code>). Supabase sets it to <code>authenticated</code>, meaning "for the parts of the API that need a logged-in user"`,
     iss: () => 'who made it (Supabase Auth)',
     session_id: () => 'the login session. Log out ends it, so its refresh token stops working',
   }
