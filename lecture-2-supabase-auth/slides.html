@@ -125,7 +125,7 @@ Do you have any questions before executing this task?</pre>
     <tr><td>Tags: what RLS rules?</td><td><b>Shared, any signed-in user</b></td><td>Tags have no <code>user_id</code>. Tag links (<code>task_tags</code>) follow the owner of their task</td></tr>
     <tr><td>Policies need tables first. What order?</td><td><b>Users → tables → RLS</b></td><td>Still pauses after each step. The tables start locked (RLS on, no policies)</td></tr>
   </table>
-  <p class="bottomline">Press <b>n</b> to add a note: <code>user_id</code> = <code>not null default auth.uid()</code>. The app never sends it.</p>
+  <p class="bottomline">At the tables pause, check one thing: <code>user_id</code> has <code>default auth.uid()</code>. The app never sends it.</p>
   <aside class="notes">
     <p><b>Claude asked these four in the dry run</b> (a tabbed question box: Users table, Backup data, Tags, Order, Submit). All four answers are its <b>Recommended</b> option, option 1. The wording changes from run to run; if a question is different, use the "Likely questions" block in <code>prompts.md</code>.</p>
     <ul>
@@ -134,14 +134,13 @@ Do you have any questions before executing this task?</pre>
       <li><b>Tags → 1 Shared.</b> Matches Ticked: tags are a shared list everyone picks from. Per-user tags would change the app.</li>
       <li><b>Order → 1 Users → tables → RLS.</b> Claude is right: you can't write a policy for a table that doesn't exist. Option 2 (all at once) skips the pauses, and the pauses are the point of the prompt. Slide 8's pause checks are in this order.</li>
     </ul>
-    <p><b>Add these with <code>n</code></b> (on the Order question is fine), so Claude doesn't have to ask later:</p>
+    <p>Then <b>Submit</b>. (The question box doesn't take notes. Fix anything missing at the pauses instead.)</p>
+    <p><b>At the tables pause (step 2), read the SQL for these.</b> If one is missing, tell Claude before "Confirmed, continue":</p>
     <ul>
-      <li><code>projects.user_id</code> and <code>tasks.user_id</code>: not null, default <code>auth.uid()</code>, on delete cascade.</li>
-      <li>Name comes from the sign-up form (<code>name</code> in the metadata), else the part of the email before the @.</li>
-      <li><code>create_task_with_tags</code>: remove <code>p_user_id</code>; security invoker; authenticated only.</li>
-      <li>When done, replace <code>supabase/schema.sql</code> with the new schema.</li>
+      <li><code>projects.user_id</code> and <code>tasks.user_id</code>: <code>not null default auth.uid()</code>. Missing → "Add default auth.uid() to projects.user_id and tasks.user_id." Without it the app has to send a user id, and saving a task fails.</li>
+      <li><code>create_task_with_tags</code> has no <code>p_user_id</code>. Missing → "Remove p_user_id; the owner comes from auth.uid()."</li>
+      <li>At the end: "Replace supabase/schema.sql with the new schema" if it hasn't.</li>
     </ul>
-    <p>Then <b>Submit</b>.</p>
   </aside>
 </section>
 
@@ -182,7 +181,7 @@ create policy "Users can view own tasks"
   <table class="dbt">
     <tr><th>Claude's step</th><th>Where to look</th><th>You should see</th></tr>
     <tr><td>1 users → auth table</td><td>Database → Triggers / Functions</td><td><code>on_auth_user_created</code>, <code>handle_new_user</code></td></tr>
-    <tr><td>2 recreate tables</td><td>Table Editor</td><td>5 empty tables, RLS on (locked: no policies yet)</td></tr>
+    <tr><td>2 recreate tables</td><td>Table Editor</td><td>5 empty tables, RLS on (locked: no policies yet). <code>user_id</code> <code>default auth.uid()</code></td></tr>
     <tr><td>3 RLS policies</td><td>Authentication → Policies</td><td><code>to authenticated</code>, <code>auth.uid() = user_id</code>, no "dev:" rules</td></tr>
   </table>
   <p class="bottomline">Then reply: "Confirmed, continue." You are the test for this prompt.</p>
