@@ -15,6 +15,7 @@
   <h1>How authentication works</h1>
   <p class="sub">Who are you, and what are you allowed to do? Ticked can't answer either question yet.</p>
   <aside class="notes">
+    <p class="plan"><b>The plan:</b> Today: who are you, and what are you allowed to do? Ticked can't answer either question yet.</p>
     <p><b>Before class</b> (demo-kit/RUNBOOK.md): Supabase is where Friday left it: Ticked's 5 tables, the "dev: open access until auth" rules, the Demo User and a few tasks. <b>Authentication → Users is empty.</b></p>
     <p>Tabs: Postman (Friday's "Ticked API" collection, plus the new "Ticked Auth" one imported), Supabase dashboard, this deck, the JWT X-ray page, the "Bouncer or VIP list?" page. Press <b>T</b>.</p>
   </aside>
@@ -29,6 +30,7 @@
   </ul>
   <p class="bottomline">Today: how apps know who you are. Next lecture: Ticked learns it.</p>
   <aside class="notes">
+    <p class="plan"><b>The plan:</b> The problem: anyone with the public key can read and change everything in Ticked.</p>
     <p><b>** LIVE, 1 minute. **</b> Postman, Friday's collection: <code>GET {{base_url}}/rest/v1/users</code>. There's the Demo User's email. "This key is inside the JavaScript of our app. Anyone can open DevTools, copy it, and do this."</p>
     <p>"The dev rules we added Friday said 'open access <b>until auth</b>'. Today is 'until'."</p>
   </aside>
@@ -39,6 +41,7 @@
   <img src="../diagrams/AU1-01-bouncer.png" alt="Maria goes to the bouncer first (authentication: who are you? fails with 401), then the VIP list (authorization: what can you do? fails with 403), then reaches only her tasks. In Ticked, authentication is logging in and authorization is RLS.">
   <div class="src">diagrams/AU1-01-bouncer.tldr</div>
   <aside class="notes">
+    <p class="plan"><b>The plan:</b> A bouncer picture for the two questions: who are you, and what can you do?</p>
     <p>"<b>Authentication</b> = who are you? The bouncer checks your ID. He doesn't care what you'll do inside yet."</p>
     <p>"<b>Authorization</b> = what can you do? You're in, but the VIP list decides which rooms."</p>
     <p>Always in that order: you can't decide what someone may do until you know who they are.</p>
@@ -57,6 +60,7 @@
   </table>
   <p class="bottomline">401 "Unauthorized" really means <b>unauthenticated</b>. Everyone finds that confusing.</p>
   <aside class="notes">
+    <p class="plan"><b>The plan:</b> Authentication vs authorization, and which one gives a 401 or a 403.</p>
     <p>Callback to Friday: the broken key in Postman → <b>401</b> "Invalid API key" (Supabase didn't know who we were). The status codes slide on Friday said: 403 = "logged in, still not allowed: RLS, once we have logins." That's today's live demo.</p>
     <p>Then straight into the activity.</p>
   </aside>
@@ -73,6 +77,7 @@
   </ol>
   <p class="muted small" style="margin-top:24px">Page: activity-bouncer-or-vip/</p>
   <aside class="notes">
+    <p class="plan"><b>The plan:</b> Activity: a situation in Ticked appears, and everyone says authentication, authorization or allowed.</p>
     <p>About 30 seconds a card; the first 6 are the core set. Space reveals; you can click the button they voted for most to show right/wrong.</p>
     <p>Cards 8 and 9 preview something surprising: RLS can say "no" with a 200 (rows hidden) or a 204 (nothing deleted), not just 403. Same 204 lesson as Friday.</p>
     <p>Answers are also in your Notes ("Authentication Lectures - Teacher Guide").</p>
@@ -84,6 +89,7 @@
   <img src="../diagrams/AU1-02-four-types.png" alt="Four authentication types. Basic sends email and password every request. Session sends a cookie and the server remembers every session. Token sends a signed JWT and the server remembers nothing. Session plus Token sends a short-lived access token and the server remembers the refresh token. Supabase uses Session plus Token.">
   <div class="src">diagrams/AU1-02-four-types.tldr</div>
   <aside class="notes">
+    <p class="plan"><b>The plan:</b> A picture of the four ways to log in.</p>
     <p>Walk left to right with ONE question each: "what goes with every request, and what does the server remember?"</p>
     <ul>
       <li><b>Basic:</b> your password on every request (base64 is not encryption: needs HTTPS). No real log out. Internal tools.</li>
@@ -106,6 +112,7 @@
   </table>
   <p class="bottomline">The decision is made for us. Our job: understand it well enough to check Claude's work.</p>
   <aside class="notes">
+    <p class="plan"><b>The plan:</b> Which login type fits which kind of app.</p>
     <p>"Firebase, Auth0 and Supabase all use the hybrid. When you pick a platform, you pick its auth."</p>
     <p>Keep this one short (2 minutes). The next three slides are what Ticked actually uses.</p>
   </aside>
@@ -116,6 +123,7 @@
   <img src="../diagrams/AU1-03-jwt.png" alt="A JWT has three parts separated by dots: a header saying how it was signed, a payload with claims such as sub (the user id), role, email and exp, which is encoded but not encrypted, and a signature made by Supabase that breaks if anything changes.">
   <div class="src">diagrams/AU1-03-jwt.tldr</div>
   <aside class="notes">
+    <p class="plan"><b>The plan:</b> A picture of what's inside a JWT.</p>
     <p>"JWT, said 'jot'. Three parts, two dots."</p>
     <ul>
       <li><b>Payload</b> = claims about the user. <code>sub</code> is the user's id. Remember that name: in the database it becomes <code>auth.uid()</code>.</li>
@@ -130,6 +138,7 @@
   <img src="../diagrams/AU1-04-refresh.png" alt="Session plus token in five steps: log in and get an access token for one hour plus a refresh token; get tasks with the access token; an hour later the token is expired and the API answers 401; supabase-js trades the refresh token for a new access token; requests work again. Log out ends the session so the refresh token stops working.">
   <div class="src">diagrams/AU1-04-refresh.tldr</div>
   <aside class="notes">
+    <p class="plan"><b>The plan:</b> A picture of how refresh tokens keep you logged in.</p>
     <p>Two tokens, two jobs:</p>
     <ul>
       <li><b>Access token</b> (JWT, 1 hour): goes with every data request. The API only checks the signature, so it's fast.</li>
@@ -161,6 +170,7 @@
   </table>
   <p class="bottomline">Same <code>apikey</code> every time; only <b>Authorization</b> changes. Logged in, you see <b>less</b> than a stranger. Why?</p>
   <aside class="notes">
+    <p class="plan"><b>The plan:</b> We sign up and log in with Postman, then read a real token.</p>
     <p><b>** LIVE, about 7 minutes. **</b> Steps in order (also in the RUNBOOK):</p>
     <ol>
       <li><b>Supabase:</b> Authentication → Sign In / Providers → <b>Email</b> → turn <b>Confirm email</b> OFF → Save. "Otherwise sign-up sends an email and gives no token. Real apps keep it on."</li>
@@ -228,6 +238,7 @@
   <img src="../diagrams/AU1-05-who-is-asking.png" alt="The request carries apikey, which says which project, and Authorization Bearer, which says which user. PostgREST checks the signature, sets the role to authenticated and makes auth.uid() the token's sub. Postgres RLS compares auth.uid() with user_id row by row. Friday's Bearer was the publishable key, role anon. After log in it's the access token, role authenticated.">
   <div class="src">diagrams/AU1-05-who-is-asking.tldr</div>
   <aside class="notes">
+    <p class="plan"><b>The plan:</b> A picture of how the database knows who is asking.</p>
     <p>"You never send a user id. You send a token, and Supabase reads the id out of it, signed so nobody can fake it."</p>
     <ul>
       <li><code>apikey</code> = which <b>project</b>. Same before and after log in.</li>
@@ -260,6 +271,7 @@
   </div>
   <p class="bottomline">Authentication worked. Authorization has no rule for us yet. Lecture 2 adds one.</p>
   <aside class="notes">
+    <p class="plan"><b>The plan:</b> Why a logged-in request gets an empty list, not an error.</p>
     <ul>
       <li>Logging in didn't break anything. Supabase knows exactly who we are: the token is valid, role = <code>authenticated</code>, <code>auth.uid()</code> = our <code>sub</code>.</li>
       <li>RLS's default is <b>no</b>. Friday's only rule says <code>to anon</code>, and we're not anon any more.</li>
@@ -280,6 +292,7 @@
   </ul>
   <p class="bottomline">Next lecture: back up, rebuild the tables for logins, and Claude builds Register, Log in and Log out.</p>
   <aside class="notes">
+    <p class="plan"><b>The plan:</b> A recap of what we now know.</p>
     <p>"Next lecture changes the database for real, so the first thing we'll do is back up our data. Never drop a table you can't restore."</p>
   </aside>
 </section>
@@ -295,6 +308,7 @@
     <p class="small">Postman → <code>POST /auth/v1/signup</code> against <b>your</b> Supabase project. Decode the token in the JWT X-ray. Then delete the test user.</p>
   </div>
   <aside class="notes">
+    <p class="plan"><b>The plan:</b> Walk through Homework Part I.</p>
     <p>The class site has the Postman collection and the JWT X-ray. The "try it" card is optional practice, not graded.</p>
   </aside>
 </section>

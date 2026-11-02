@@ -16,6 +16,7 @@
   <h1>Supabase authentication</h1>
   <p class="sub">Back up, rebuild the tables for logins, then two phased prompts. By the end, Ticked knows who you are.</p>
   <aside class="notes">
+    <p class="plan"><b>The plan:</b> Today we back up, rebuild the tables for logins, and give Claude two phased prompts. By the end, Ticked knows who you are.</p>
     <p><b>Before class</b> (demo-kit/RUNBOOK.md): Confirm email is OFF (done in Lecture 1). Authentication → Users is empty. <code>~/demos/ticked</code> is committed (<code>git status</code> clean). Ticked's dev server is <b>not</b> running.</p>
     <p>One terminal in <code>~/demos/ticked</code> (the root, where <code>.mcp.json</code> is). Tabs: Supabase Table Editor, this deck, the "What comes back?" page, <code>demo-kit/prompts.md</code>. Press <b>T</b>.</p>
   </aside>
@@ -30,6 +31,7 @@
     <li>Two accounts, two browsers: each sees only their own</li>
   </ol>
   <aside class="notes">
+    <p class="plan"><b>The plan:</b> The agenda: back up and drop, the Supabase prompt, the React prompt, then verify.</p>
     <p>"Lecture 1 was the why. Today is the how. It's the same pattern every time you add something big: understand it, fix the data first, map the workflows, then give Claude a phased prompt with checks built in."</p>
   </aside>
 </section>
@@ -39,6 +41,7 @@
   <img src="../diagrams/AU2-01-auth-model.png" alt="Register or log in writes to auth.users, which Supabase manages. A trigger copies each new user into public.users. projects and tasks point to public.users through user_id. tags are shared and task_tags follow their task. RLS policies on every table use auth.uid() equals user_id, and auth.uid() comes from the access token.">
   <div class="src">diagrams/AU2-01-auth-model.tldr</div>
   <aside class="notes">
+    <p class="plan"><b>The plan:</b> A picture of the new model: how logins connect to our users table.</p>
     <ul>
       <li><code>auth.users</code>: Supabase's table. Emails, password hashes. Our code never writes to it.</li>
       <li><code>public.users</code>: OUR table, a mirror. Same <code>id</code>, plus what the app shows (the name).</li>
@@ -69,6 +72,7 @@ table in the public schema (users, projects, tags, tasks, task_tags) and the
 create_task_with_tags function, so the project is empty. Show me the SQL first and wait for
 my approval.</pre>
   <aside class="notes">
+    <p class="plan"><b>The plan:</b> We back up all five tables to CSV, then drop them.</p>
     <p><b>** LIVE, about 4 minutes. **</b> The curriculum shows users and tasks; Ticked has five tables, so export all five. <code>mkdir -p supabase/backups</code> in the root and move the CSVs from Downloads.</p>
     <p>Then in Claude (root, <code>/model</code> → Opus), paste the drop prompt (on the slide; also in <code>demo-kit/prompts.md</code>). It's ours, not the curriculum's: the curriculum assumes you've already emptied the project, and its prompt (next slide) says "I've currently deleted all tables". This is that step. Read the SQL out loud: <code>drop table … cascade</code> and the function. Approve. Table Editor: empty.</p>
     <p><b>Approve only if</b> the SQL drops the 5 tables (<code>cascade</code> is fine) and <code>create_task_with_tags</code>. Nothing else.</p>
@@ -114,6 +118,7 @@ before proceeding to the next step.
 
 Do you have any questions before executing this task?</pre>
   <aside class="notes">
+    <p class="plan"><b>The plan:</b> We read the Supabase prompt and paste it in.</p>
     <p><b>** LIVE. **</b> Same Claude session, in the root ("the directory running your supabase project": <code>.mcp.json</code> moved there on Friday). Paste from <code>demo-kit/prompts.md</code>; the bold parts are our paths.</p>
     <p>Point at two lines: <b>"pause and ask for confirmation"</b> (we check every step) and <b>"Do you have any questions"</b> (it plans before it acts).</p>
     <p><b>The yellow block is ours.</b> The curriculum's prompt is word for word above it. Our block answers what Claude asked in the dry run (order, backups, tags, <code>user_id</code>), and adds the one thing the curriculum misses for Ticked: rebuild <code>create_task_with_tags</code>. The drop step removed it, and <code>db.js</code> calls it to save a task. Without it, adding a task fails later. "Good prompts answer the questions before they're asked."</p>
@@ -139,6 +144,7 @@ Do you have any questions before executing this task?</pre>
   </table>
   <p class="bottomline">At the tables pause, check one thing: <code>user_id</code> has <code>default auth.uid()</code>. The app never sends it.</p>
   <aside class="notes">
+    <p class="plan"><b>The plan:</b> The questions Claude will ask, and what we pick.</p>
     <p><b>With our "Also for this project" block, Claude should ask fewer of these, maybe none.</b> If it still asks, the answers are the same.</p>
     <p><b>Dry run 2 (with the block) asked 5 different ones.</b> Answers: (1) trigger on <code>auth.users</code>: <b>yes</b>, that's the exception to "only my tables"; (2) keep email in <code>public.users</code>: <b>keep it</b> (no "change email" feature); (3) ownership checks on project_id and task_tags: <b>yes</b>; (4) tags read and add only: <b>yes</b>; (5) who updates <code>db.js</code>: <b>separate task</b>, the React prompt. The block now answers all five, so expect fewer.</p>
     <p><b>Claude asked these four in the dry run</b> (a tabbed question box: Users table, Backup data, Tags, Order, Submit). All four answers are its <b>Recommended</b> option, option 1. The wording changes from run to run; if a question is different, use the "Likely questions" block in <code>prompts.md</code>.</p>
@@ -181,6 +187,7 @@ create policy "Users can view own tasks"
   </div>
   <p class="bottomline">The app never sends a user id. The token does.</p>
   <aside class="notes">
+    <p class="plan"><b>The plan:</b> What Claude is writing: the trigger and the rules.</p>
     <p>While Claude works. Compare these with what Claude actually shows you: names will differ, the ideas shouldn't.</p>
     <ul>
       <li><b>Trigger:</b> <code>handle_new_user</code> is <code>security definer</code>: it runs as the database owner, because the new user can't insert into <code>public.users</code> yet.</li>
@@ -221,6 +228,7 @@ user_id = <b style="color:#ffe76a">default auth.uid()</b>
   </div>
   <p class="bottomline">Anyone can edit a request body. Nobody can fake a signed token.</p>
   <aside class="notes">
+    <p class="plan"><b>The plan:</b> A big change: the app no longer says who owns a row, the database does.</p>
     <ul>
       <li><b>Friday:</b> the app put the Demo User's id (from <code>.env</code>) in every new row. It had to: there was no login, so the database had no other way to know.</li>
       <li><b>The problem:</b> the body is just text the browser sends. Anyone can change it in DevTools or Postman and save rows as someone else.</li>
@@ -242,6 +250,7 @@ user_id = <b style="color:#ffe76a">default auth.uid()</b>
   </table>
   <p class="bottomline">Then reply: "Confirmed, continue." You are the test for this prompt.</p>
   <aside class="notes">
+    <p class="plan"><b>The plan:</b> Each time Claude pauses: where to check, and what we should see.</p>
     <p><b>** LIVE. **</b> In the dry run Claude asked to go users → tables → RLS (policies need the tables), so the table is in that order. If it picks another order, check each step when it pauses. Check each one when it pauses. Approve Supabase MCP calls one by one; read the SQL.</p>
     <p><b>Step 1 in the dry run:</b> Claude tested the trigger itself (a fake sign-up inside a transaction, rolled back) and updated only the users part of <code>schema.sql</code>. The rest of the file still shows the old tables until step 2. Triggers page: switch the schema dropdown from <code>public</code> to <code>auth</code>, because the trigger lives on <code>auth.users</code>. If it says it "backfilled" a profile for <code>test@ticked.app</code>, the Lecture 1 test account wasn't deleted. Harmless, but delete it in Authentication → Users after the lecture.</p>
     <p><b>When step 3 is done</b> (dry run: 15 policies + <code>create_task_with_tags</code>, tested as two fake users), Claude offers extras. Say: <i>"Confirmed, step 3 works. Don't change the front end or CLAUDE.md yet: that's my next prompt. Leave rls_auto_enable() and the leaked-password setting as they are."</i> Its warnings: the advisor flags <code>rls_auto_enable()</code> (low risk, it's an event-trigger function), leaked password protection (Pro plan, skip), and "the front end won't work until db.js changes" (expected: that's slide 11).</p>
@@ -254,6 +263,7 @@ user_id = <b style="color:#ffe76a">default auth.uid()</b>
   <img src="../diagrams/AU2-02-workflows.png" alt="Four front-end workflows, each one phase: 1 Register with name, email and password through signUp, then the trigger makes the public.users row. 2 Log in with signInWithPassword, only my tasks. 3 Log out with signOut, tokens removed. 4 Who am I: the header shows my name, and a refresh finds the saved tokens with getSession. Every page except Log in and Register is protected.">
   <div class="src">diagrams/AU2-02-workflows.tldr</div>
   <aside class="notes">
+    <p class="plan"><b>The plan:</b> A picture of the Register, Log in and Log out flows.</p>
     <p>The curriculum's checklist. Each one becomes a phase, and Claude proves each phase with Playwright before starting the next.</p>
     <p>Number 4 is the subtle one: after a refresh, React's state is gone. supabase-js saved the tokens in localStorage, and <code>getSession()</code> reads them back. That's "leveraging the current credentials".</p>
   </aside>
@@ -281,6 +291,7 @@ Each of these actions should be an independent phase. Utilize playwright to ensu
 Do you have any questions before completing these actions?</pre>
   <p class="bottomline">The publishable key is fine to paste; the secret key never is.</p>
   <aside class="notes">
+    <p class="plan"><b>The plan:</b> We read the Vite and React prompt and paste it in.</p>
     <p><b>** LIVE. **</b> Same session. Copy from <code>prompts.md</code> (or this slide: it's the full text now) and fill in the URL and key from <code>front-end/.env</code>. (In the dry run, a shortened version on this slide made Claude ask what "User Confirmation" meant.)</p>
     <p><b>Its questions:</b> use the "Likely questions" block:</p>
     <ul>
@@ -307,6 +318,7 @@ Do you have any questions before completing these actions?</pre>
   </table>
   <p class="bottomline">All four: its Recommended option. Then Submit.</p>
   <aside class="notes">
+    <p class="plan"><b>The plan:</b> The questions Claude will ask this time, and what we pick.</p>
     <p><b>Claude asked these four in the dry run</b> (tabs: Confirmation, Email check, Register, Test users, Submit). The wording changes from run to run.</p>
     <ul>
       <li><b>Confirmation → 1 Session survives refresh.</b> Not option 2 or 3: email confirmation needs an inbox, and Confirm email is off. "User Confirmation" in the curriculum = "confirm who the user is": the top bar shows their name, and a refresh keeps them logged in (<code>getSession()</code> reads the saved tokens).</li>
@@ -329,6 +341,7 @@ Do you have any questions before completing these actions?</pre>
   </ol>
   <p class="muted small" style="margin-top:24px">Page: activity-what-comes-back/</p>
   <aside class="notes">
+    <p class="plan"><b>The plan:</b> Activity: a request appears, and everyone says what comes back.</p>
     <p>While Claude builds the phases. About 30 seconds a card; the first 6 are the core set. Glance at the terminal between cards and approve what Claude asks.</p>
     <p>The surprise card is #5: Sam deletes Maria's task → 204, but nothing is deleted. "Always check the Table Editor, not just the status."</p>
     <p>When Claude starts a Playwright check, stop and watch it: next slide.</p>
@@ -358,6 +371,7 @@ Do you have any questions before completing these actions?</pre>
     </div>
   </div>
   <aside class="notes">
+    <p class="plan"><b>The plan:</b> We watch Claude check each phase with Playwright.</p>
     <p><b>** LIVE. **</b> Approve the Playwright and Supabase calls. Point at the browser window Playwright drives.</p>
     <p>Playwright deletes its test accounts after each phase, so the "nobody inserted that row" moment happens in the payoff (next slide): register Maria, then Table Editor → users.</p>
     <p><b>Time check:</b> if Claude isn't on the Log out phase by ~min 31, stop it and use the backup (RUNBOOK → "Time check, Lecture 2").</p>
@@ -375,6 +389,7 @@ Do you have any questions before completing these actions?</pre>
     <li>DevTools → Application → Local Storage: the tokens. Log out: gone.</li>
   </ol>
   <aside class="notes">
+    <p class="plan"><b>The plan:</b> We prove it works: two accounts in two browsers, and neither sees the other's tasks.</p>
     <p><b>** LIVE, the payoff (about 5 minutes). **</b> <code>cd front-end && npm run dev</code>.</p>
     <ul>
       <li>Two windows side by side. Sam sees nothing of Maria's. "Same app, same database, same publishable key. Different token."</li>
@@ -397,6 +412,7 @@ Do you have any questions before completing these actions?</pre>
   </ul>
   <p class="bottomline">The pattern: understand it → fix the data → map the workflows → a phased prompt with checks.</p>
   <aside class="notes">
+    <p class="plan"><b>The plan:</b> Ticked is no longer an open house: a recap of what changed.</p>
     <p><b>** LIVE, 1 minute: **</b> <code>git status</code>: new pages, <code>db.js</code>, <code>schema.sql</code>, <code>supabase/backups/</code>. "Backups: commit them only if they hold test data. Ours do." Commit "Add Supabase Auth: register, log in, log out".</p>
   </aside>
 </section>
@@ -420,6 +436,7 @@ Do you have any questions before completing these actions?</pre>
     </div>
   </div>
   <aside class="notes">
+    <p class="plan"><b>The plan:</b> Walk through Homework Part II.</p>
     <p>All steps and both prompts are on the class site. Remind them: turn off Confirm email in THEIR project too, or Playwright gets stuck at "check your email".</p>
   </aside>
 </section>
